@@ -20,7 +20,9 @@
 | SI-2 | Flaw Remediation | 8 | All three components |
 | SI-3 | Malicious Code Protection | 4 | All three components |
 
-**Out of scope:** the other 281 controls of the tailored baseline. IA-5(13), added for Finding 7, is not yet implemented and is not assessed: its time period is not defined (system security plan §10.2), and the installed Samba release documents no setting that limits how long cached logon credentials can be used.
+Scope and counts in this section are as assessed in September 2026.
+
+**Out of scope:** the other 281 controls of the tailored baseline at the time of the assessment. IA-5(13), added for Finding 7, is not yet implemented and is not assessed: its time period is not defined (system security plan §10.2), and the installed Samba release documents no setting that limits how long cached logon credentials can be used.
 
 ---
 
@@ -53,7 +55,7 @@ Applied here as: every component §1 names for a control is examined; controls w
 
 ## 4. Organization-Defined Parameter Values
 
-SP 800-53A procedures first determine whether each organization-defined parameter is defined. The values below are assigned for this assessment, as the system security plan provides (§10.2).
+SP 800-53A procedures first determine whether each organization-defined parameter is defined. The values below are assigned for this assessment, as the system security plan provides (§10.2). The CM-07_ODP[02]–[06] row shows the value as amended for re-tests (§7).
 
 | Parameter | Value |
 |---|---|
@@ -65,7 +67,7 @@ SP 800-53A procedures first determine whether each organization-defined paramete
 | CA-03_ODP[02] — organization-defined agreement type | An information exchange record in the system security plan |
 | CA-03_ODP[03] — agreement review frequency | Annually |
 | CM-07_ODP[01] — mission-essential capabilities | Detection, identity services, and evidence production (system security plan §2) |
-| CM-07_ODP[02]–[06] — functions, ports, protocols, software, and services to restrict | Any not required by a mission-essential capability. Required inbound: SSH from the MacBook Air (macOS; hypervisor and administration host) on all three components; the SIEM dashboard on Ubuntu Server; directory services on the Samba DC, from the lab segment and the Windows client only. Remote-management software restricted to approved, documented tools. |
+| CM-07_ODP[02]–[06] — functions, ports, protocols, software, and services to restrict | Any not required by a mission-essential capability. Required inbound: SSH from the MacBook Air (macOS; hypervisor and administration host) on Ubuntu Server and the Samba DC; the SIEM dashboard on Ubuntu Server; directory services on the Samba DC, from the lab segment only. Remote-management software restricted to approved, documented tools. |
 | SA-09_ODP[01] — controls employed by external service providers | The provider's published security commitments |
 | SA-09_ODP[02] — monitoring of provider compliance | Annual review of the provider's security documentation |
 | SA-22_ODP[01] — alternative support source | Support from external providers |
@@ -112,4 +114,4 @@ Determination statement identifiers are SP 800-53A Rev 5's.
 
 ## 7. Approval
 
-SP 800-53A §3.2.6 calls for the plan to be *"reviewed and approved by appropriate organizational officials …"* Parameter values (§4) were approved by the system owner on September 24, 2026. The plan as a whole was reviewed and approved by the system owner on September 28, 2026, after the assessment was performed. Authorizing Official review is pending (system security plan §5).
+SP 800-53A §3.2.6 calls for the plan to be *"reviewed and approved by appropriate organizational officials …"* Parameter values (§4) were approved by the system owner on September 24, 2026. The plan as a whole was reviewed and approved by the system owner on September 28, 2026, after the assessment was performed. The amended CM-07_ODP[02]–[06] value in §4 was approved by the system owner on October 10, 2026. The value it replaced, which the September 2026 assessment applied: *"Any not required by a mission-essential capability. Required inbound: SSH from the MacBook Air (macOS; hypervisor and administration host) on all three components; the SIEM dashboard on Ubuntu Server; directory services on the Samba DC, from the lab segment and the Windows client only. Remote-management software restricted to approved, documented tools."* Authorizing Official review is pending (system security plan §5).

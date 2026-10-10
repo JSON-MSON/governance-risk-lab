@@ -1,6 +1,6 @@
 # governance-risk-lab
 
-The NIST Risk Management Framework (SP 800-37 Rev 2) applied to a working security lab, the Cybersecurity Home Lab (HL-01). The lab has three components: Ubuntu Server (SIEM), running Wazuh; Samba DC, an Active Directory domain controller; and the Windows client, a domain member. Identifying values are replaced or redacted.
+The NIST Risk Management Framework (SP 800-37 Rev 2) applied to a working security lab, the Cybersecurity Home Lab (HL-01). The lab has two components: Ubuntu Server (SIEM), running Wazuh, and Samba DC, an Active Directory domain controller. Identifying values are replaced or redacted.
 
 ## At a glance
 

@@ -729,7 +729,7 @@ On August 7, after the deletion, the table held no default route and no persiste
 
 ## 14. Boot Camp on the Windows client
 
-Supports system security plan §9 (the Windows client's hardware: an Apple Mac mini running Windows through Boot Camp). Records from the Windows client.
+Supports the assessment report §6.1 (the client is physical). The Windows client was an Apple Mac mini running Windows through Boot Camp. Records from the Windows client.
 
 Installed software on October 1, 2026 (`state-at-retirement.txt`, lines 16–20, SHA-256 `949129d4ec0da0fcfa58b7609d13e95ad855a65022ac622734d014e315ac482c`), with the version redacted, and a running service (lines 300–305):
 
@@ -783,7 +783,7 @@ EventRecordID | EventID | TimeCreated (UTC, 100-ns) | ServiceName | ImagePath | 
 
 ## 15. SSH administration of the Windows client
 
-Supports system security plan §2 (the operator administers every component over SSH) and the assessment report §6 (the Windows client's evidence was gathered over SSH). The Windows client's OpenSSH log, copied October 1, 2026: every accepted login it records.
+Supports the assessment report §6 (the Windows client's evidence was gathered over SSH). The Windows client's OpenSSH log, copied October 1, 2026: every accepted login it records.
 
 ```
 $ shasum -a 256 log_OpenSSH_Operational.evtx

@@ -23,24 +23,19 @@ A system security plan for a single-operator security lab, developed with the NI
 | Characteristic | Value |
 |---|---|
 | Environment type | Testing and training |
-| Implemented technology | On-premises: two virtual machines (VMware Fusion on a macOS host) and one physical workstation |
+| Implemented technology | On-premises: two virtual machines (VMware Fusion on a macOS host) |
 | System exposure | Isolated for the lab segment; restricted for the home-network side |
 | System criticality | Mission-critical to its own three functions |
 | Ownership | Privately owned and operated by a single individual |
 | Common control provider | None. No controls are inherited from the MacBook Air (macOS; hypervisor and administration host) outside the boundary. |
 
-**Users.** One operator administers every component over SSH (the Windows client's SSH log: [evidence appendix §15](evidence-appendix.md#15-ssh-administration-of-the-windows-client)). The directory also holds test accounts used in exercises. No data about real individuals is processed.
+**Users.** One operator administers both components over SSH from the MacBook Air. The directory also holds test accounts used in exercises. No data about real individuals is processed.
 
 **Factors presenting additional risk:**
 
 - The Samba DC is dual-homed across the lab segment and the home network, and runs no host firewall (Finding 2).
 - Kali Linux (attack simulation) shares the lab segment with Ubuntu Server (SIEM) and the Samba DC by design.
 - Ubuntu Server is configured to accept cached domain logons (Finding 7).
-- The Windows client was designed to have no internet access, but that isolation was not in effect: the client had a path to the internet with name resolution disabled (Finding 10). On September 29, 2026, the system owner changed the design: the client keeps outbound internet access until it is retired (`poam.md` P-07).
-- On October 1, 2026, the system owner decided to retire the Windows client early, without remediating it. It stays in the boundary and the component inventory, powered off, until its disposal is verified (`poam.md` P-17).
-- The Windows client runs an operating system past its end of support (Finding 8).
-- The Windows client runs an external remote-management agent (Action1) (Finding 9).
-- The Windows client runs an application Microsoft classifies as adware (Finding 11).
 - Neither server has malicious code protection meeting the approved values (Finding 12).
 - The Samba DC lists its file shares and every domain user account to anonymous requesters on the lab segment (Finding 13).
 
@@ -62,6 +57,7 @@ A system security plan for a single-operator security lab, developed with the NI
 | NIST SP 800-53B (Release 5.2.0) | Control baselines and tailoring |
 | NIST SP 800-53A Rev 5 (Release 5.2.0) | Control assessment procedures (`security-assessment-plan.md`) |
 | NIST SP 800-18 Rev 2 | System plan elements and structure |
+| NIST SP 800-88 Rev 2 | Media sanitization (§10.2, MP-6 value) |
 
 ---
 
@@ -121,19 +117,18 @@ SC Cybersecurity Home Lab = {(confidentiality, HIGH), (integrity, HIGH), (availa
 
 ## 7. Authorization Boundary
 
-Three components across two network segments. The boundary follows SP 800-37 Rev 2's definition: *"All components of an information system to be authorized for operation by an authorizing official. …"*
+Two components across two network segments. The boundary follows SP 800-37 Rev 2's definition: *"All components of an information system to be authorized for operation by an authorizing official. …"*
 
 | Component | Type | Role | Network placement |
 |---|---|---|---|
 | Ubuntu Server | Virtual machine, Ubuntu Server LTS | Wazuh manager, indexer, and dashboard; domain member | Lab segment only; no route off it |
-| Samba DC | Virtual machine, Ubuntu Server LTS | Samba Active Directory: directory, Kerberos, DNS | Dual-homed: lab segment and home network |
-| Windows client | Physical, Windows 10 Pro | Domain client | Home network, via Wi-Fi; outbound internet access by design until retirement (Finding 10) |
+| Samba DC | Virtual machine, Ubuntu Server LTS | Samba Active Directory: directory, Kerberos, DNS | Dual-homed: lab segment and home network; the home-network adapter is bridged to the MacBook Air's Wi-Fi |
 
 | Excluded | Reason |
 |---|---|
 | Kali Linux | Generates test traffic against the system; holds none of its information types |
 | MacBook Air | Hosting infrastructure for the two virtual machines; the operator administers every component from it over SSH |
-| The rest of the home network | Two boundary components connect to it; the network itself is outside the boundary |
+| The rest of the home network | The Samba DC connects to it; the network itself is outside the boundary |
 
 ```mermaid
 flowchart TB
@@ -142,22 +137,16 @@ flowchart TB
             SIEM["Ubuntu Server<br/>Wazuh SIEM"]
         end
         DC["Samba DC<br/>Active Directory, dual-homed"]
-        WIN["Windows client<br/>domain member; outbound internet access by design until retirement (Finding 10)"]
     end
     ATK["Kali Linux<br/>attack simulation, outside the boundary"]
     HOME["Home network<br/>outside the boundary"]
     HV["MacBook Air<br/>hypervisor and administration host, outside the boundary"]
     NET["Internet"]
-    RMM["Remote-management cloud console (Action1)<br/>outside the boundary"]
     SIEM <-->|"domain membership"| DC
-    WIN <-->|"domain membership"| DC
     ATK -->|"test traffic"| SIEM
     ATK -->|"test traffic"| DC
     DC --- HOME
-    WIN --- HOME
     HOME --- NET
-    NET --- RMM
-    WIN -.->|"agent, when online"| RMM
     HV -.->|"hosts"| SIEM
     HV -.->|"hosts"| DC
 ```
@@ -166,27 +155,25 @@ flowchart TB
 
 ## 8. Information Exchanges
 
-No information exchange agreements exist; none of the connected systems is separately authorized.
+No information exchange agreements exist; none of the connected systems is separately authorized. No remote-management service is connected to the system; the Action1 account closure is tracked in `poam.md` P-06.
 
 | Counterpart | Components | What crosses the boundary | Security consideration |
 |---|---|---|---|
-| Home network | Samba DC; Windows client | Every directory service is reachable from the home network | No host firewall on the Samba DC (Finding 2) |
-| Internet | Samba DC; Windows client | Outbound paths exist through the home gateway; inbound reachability from the internet was not examined. The Windows client keeps outbound internet access until it is retired (§2; `poam.md` P-07). | Unfiltered outbound path; unsupported client operating system; name resolution disabled on the client (Findings 2, 8, 10) |
-| MacBook Air | All components | Administration over SSH; evidence copied out for publication | Published evidence is redacted |
+| Home network | Samba DC | Every directory service is reachable from the home network | No host firewall on the Samba DC (Finding 2) |
+| Internet | Samba DC | Outbound paths exist through the home gateway; inbound reachability from the internet was not examined. | Unfiltered outbound path (no host firewall, Finding 2) |
+| MacBook Air | Both components | Administration over SSH; evidence copied out for publication | Published evidence is redacted |
 | Kali Linux | Ubuntu Server; Samba DC (lab-segment interface) | Hostile test traffic, by design | A host-specific firewall rule denies it SSH to Ubuntu Server |
-| Remote-management cloud console (Action1) | Windows client | Outbound inventory; inbound software deployments | External service with deployment capability and no agreement (Finding 9) |
 
 ---
 
 ## 9. System Component Inventory
 
-Captured live from each component and from the virtual machine configuration files. Exact versions are held in the operator's working records. The Windows client's retirement was decided on October 1, 2026; it is powered off and stays in this inventory until its disposal is verified (`poam.md` P-17).
+Captured live from each component and from the virtual machine configuration files. Exact versions are held in the operator's working records.
 
 | Component | Hardware | Operating system and support status | Key software |
 |---|---|---|---|
 | Ubuntu Server | VMware virtual machine, arm64, 2 vCPU, 6 GB; virtual EFI supplied by the MacBook Air (outside the boundary), Secure Boot not enabled | Ubuntu Server 26.04 LTS; supported | Wazuh 4.14, OpenSSH, Samba winbind, ufw |
 | Samba DC | VMware virtual machine, arm64, 2 vCPU, 4 GB; virtual EFI supplied by the MacBook Air (outside the boundary), Secure Boot not enabled | Ubuntu Server 26.04 LTS; supported | Samba Active Directory domain controller, MIT Kerberos tools, OpenSSH, ufw (inactive) |
-| Windows client | Apple Mac mini (Boot Camp; [evidence appendix §14](evidence-appendix.md#14-boot-camp-on-the-windows-client)) | Windows 10 Pro 22H2; past end of support (October 14, 2025) | OpenSSH server, Microsoft Defender Antivirus, a remote-management agent (Action1), an application classified as adware (Finding 11) |
 
 ---
 
@@ -218,7 +205,7 @@ Captured live from each component and from the virtual machine configuration fil
 | Information is relatively persistent (*"utility for a relatively long duration (e.g., days, weeks)"*) | Yes | Directory and alert records are ongoing; exercise captures are retained. |
 | Systems are multi-user, serially or concurrently | By account, not by person | One operator; several administrative accounts and directory test accounts. |
 | Some information is not shareable with other authorized users | Yes | Administrative accounts are separate from test accounts; file permissions enforce the split (one set of file modes is broader than the captures', Finding 5). |
-| Systems are networked and general purpose | Yes | Three components on two segments; general-purpose operating systems. |
+| Systems are networked and general purpose | Yes | Two components on two segments; general-purpose operating systems. |
 | The organization has the structure, resources, and infrastructure to implement the controls | No | One individual holds every role and no policy is issued. SP 800-53B footnote 22 names this case for small nonfederal entities, which *"may not be large enough or sufficiently resourced to have elements dedicated to providing the range of security or privacy capabilities that are assumed by the baselines."* |
 
 | Assumption not addressed by the baselines | Applies? | Evidence |
@@ -227,17 +214,17 @@ Captured live from each component and from the virtual machine configuration fil
 | Classified information is processed | No | Nonfederal; no federal information. |
 | Advanced persistent threats exist within the organization | Not established | No system risk assessment has been developed. |
 | Information requires specialized protection under legislation, directives, regulations, or policies | No | None identified (§3). |
-| Systems communicate across different security domains | Yes | A security domain is *"a domain that implements a security policy and is administered by a single authority"* (SP 800-53 Rev 5 glossary). The Windows client exchanges data with an externally administered cloud console, and two components reach the internet. |
+| Systems communicate across different security domains | Yes | A security domain is *"a domain that implements a security policy and is administered by a single authority"* (SP 800-53 Rev 5 glossary). The Samba DC reaches the internet through the home gateway. |
 
 SP 800-53B: where these apply, *"additional controls from [SP 800-53] are likely needed to ensure adequate protection—a situation that can also be effectively addressed by applying the tailoring guidance in Section 2.4 (specifically, security control supplementation) and the results of organization- and system-level assessments of risk."*
 
 ### 10.2 Tailoring (SP 800-37 Rev 2 Task S-2)
 
-**Result: 290 controls in the tailored baseline** — 370 selected, 81 tailored out, 1 added. SP 800-53B §2.4 requires that *"Every control from the selected control baseline is accounted for by the organization. If certain controls are tailored out, the rationale is recorded in the system security and privacy plans …"* Every control's disposition is listed at the end of this section.
+**Result: 286 controls in the tailored baseline** — 370 selected, 85 tailored out, 1 added. SP 800-53B §2.4 requires that *"Every control from the selected control baseline is accounted for by the organization. If certain controls are tailored out, the rationale is recorded in the system security and privacy plans …"* Every control's disposition is listed at the end of this section.
 
 | Family | Selected | Tailored out | Added | Tailored baseline | Basis for tailoring |
 |---|---|---|---|---|---|
-| Access Control | 46 | 5 | — | 41 | Single operator; no mobile devices; no public content; separation of duties compensated |
+| Access Control | 46 | 8 | — | 38 | Single operator; no mobile devices; no wireless equipment in the system; no public content; separation of duties compensated |
 | Awareness and Training | 6 | 6 | — | 0 | Single operator — no workforce for awareness or role-based training programs; contingency and incident response training (CP-3, IR-2) is retained for the operator |
 | Audit and Accountability | 25 | 1 | — | 24 | No automated physical access monitoring records to correlate with |
 | Assessment, Authorization, and Monitoring | 14 | 3 | — | 11 | No independent assessor available |
@@ -253,23 +240,30 @@ SP 800-53B: where these apply, *"additional controls from [SP 800-53] are likely
 | Risk Assessment | 11 | — | — | 11 | None |
 | System and Services Acquisition | 21 | 8 | — | 13 | Off-the-shelf components; no external developer builds or maintains software for this system; no PIV products |
 | System and Communications Protection | 30 | 1 | — | 29 | No remote devices |
-| System and Information Integrity | 28 | 2 | — | 26 | No mail service across the boundary |
+| System and Information Integrity | 28 | 3 | — | 25 | No mail service across the boundary; no wireless equipment in the system |
 | Supply Chain Risk Management | 14 | 3 | — | 11 | No team to establish; off-the-shelf supply chain, no notification agreements obtainable; no training audience |
-| **Total** | **370** | **81** | **1** | **290** | |
+| **Total** | **370** | **85** | **1** | **286** | |
 
-**Scoping considerations (SP 800-53B §2.4).** 80 controls are tailored out on scoping grounds:
+**Scoping considerations (SP 800-53B §2.4).** 84 controls are tailored out on scoping grounds:
 
 - **Single operator (31).** §2.4 names *"single-user systems and operations"* among the operational factors that justify tailoring, and the baseline assumption that the organization has the structure and resources to implement the controls does not hold (§10.1). Personnel security, awareness and training, identity proofing, and controls requiring an independent assessor or a separate team have no one to apply to.
 - **No facility infrastructure (13).** The system operates in a residence: no alarm or surveillance equipment, system-level physical access monitoring, or visitor records; no emergency shutoff or lighting, long-term alternate power, automatic fire detection or suppression, automated water-damage protection, or controlled delivery area; no alternate work site; and no automated physical access records to correlate with audit records (AU-6(6)).
 - **No alternate site or provider (16).** Alternate storage and processing sites and alternate telecommunications services do not exist. Availability is rated HIGH (§6.2), so this is an availability risk submitted for acceptance (pending Authorizing Official review), not a downgrade.
-- **Technology not present (12).** §2.4: controls referring to specific technologies *"are applicable only if those technologies are implemented or required for use within organizational systems."* The system has no PIV credentials, no users from outside the organization, no mobile devices, no remote devices, and no mail service operating across the system boundary (spam protection, SI-8, acts on messaging the system does not run; web- and file-borne malicious code is covered by SI-3, which is retained), and it hosts no publicly accessible content (AC-22). Wireless controls are retained: the Windows client connects over Wi-Fi. Publishing this portfolio's lab evidence to external public repositories is not publicly accessible content hosted on the system; that activity falls under PL-4(1) (Social Media and External Site/Application Usage Restrictions), which is retained, and whose rules of behavior are not yet issued (§3).
+- **Technology not present (16).** §2.4: controls referring to specific technologies *"are applicable only if those technologies are implemented or required for use within organizational systems."* The system has no PIV credentials, no users from outside the organization, no mobile devices, no remote devices, no wireless equipment of its own, and no mail service operating across the system boundary (spam protection, SI-8, acts on messaging the system does not run; web- and file-borne malicious code is covered by SI-3, which is retained), and it hosts no publicly accessible content (AC-22). Each server's kernel shows no wireless interface, wireless radio or Bluetooth controller (checked October 10, 2026). The Samba DC's home-network adapter is bridged to the MacBook Air's Wi-Fi, outside the boundary, so wireless access to the system exists: AC-18 and AC-18(1) are retained. AC-18(3) is tailored out because no radio is embedded in either component; AC-18(4) and AC-18(5) because the wireless equipment, the MacBook Air's radio and the home network's access point, with their configuration, antennas and transmission power, is outside the boundary; and SI-4(14) because no wireless equipment is inside the boundary to monitor, which also gives up its scan for unauthorized wireless access points. Publishing this portfolio's lab evidence to external public repositories is not publicly accessible content hosted on the system; that activity falls under PL-4(1) (Social Media and External Site/Application Usage Restrictions), which is retained, and whose rules of behavior are not yet issued (§3).
 - **No external developer or supply-chain relationship (8).** Every component is off-the-shelf (§9). No external developer builds or maintains software for this system; operator-written scripts are managed as configuration. For a single operator using off-the-shelf products, no supply-chain notification agreements (SR-8) can be established.
 
 **Compensating control.** AC-5 (Separation of Duties) is tailored out: one person holds every role (§5). More frequent audit record review under AU-6 is designated to compensate (its frequency is assigned at implementation; AU-6 is not yet assessed), as SP 800-53B §2.4, footnote 33 provides: *"In a small organization, more frequent auditing, targeted role-based training, or stronger personnel screening may be implemented in lieu of separation of duties."*
 
 **Supplementation.** IA-5(13) (Expiration of Cached Authenticators) is added. It is in no SP 800-53B baseline and addresses Finding 7: cached domain logons, which may be accepted while the domain connection is flagged offline.
 
-**Parameter values.** Organization-defined parameter values for the controls in the assessment scope are assigned in `security-assessment-plan.md`. All others are assigned at implementation.
+**Parameter values.** Organization-defined parameter values for the controls in the assessment scope are assigned in `security-assessment-plan.md`. The values below are assigned for the Windows client's disposal (`poam.md` P-17). All others are assigned at implementation.
+
+| Control | Parameter | Value |
+|---|---|---|
+| MP-6 | System media to be sanitized prior to release for reuse | The Windows client's internal storage drive |
+| MP-6 | Sanitization techniques and procedures to be used for sanitization prior to release for reuse | Purge, the method SP 800-88 Rev 2 (Figure 1) gives for media that will be reused, holds HIGH-confidentiality information and stays under organizational control; carried out with the drive's ATA Enhanced Security Erase command, as decided by the system owner; verified by reading the whole drive; validated; certificate of sanitization completed |
+| SR-12 | Data, documentation, tools, or system components to be disposed of | The Windows client and its storage media |
+| SR-12 | Techniques and methods for disposing of data, documentation, tools, or system components | The `poam.md` P-17 tasks: the computer account deleted from the domain; the storage media sanitized as assigned under MP-6; the inventory, boundary and plans updated |
 
 **Common controls.** None; no common control provider exists (§2).
 
@@ -316,9 +310,9 @@ SP 800-53B: where these apply, *"additional controls from [SP 800-53] are likely
 | AC-17(4) | PRIVILEGED COMMANDS AND ACCESS | Retained |
 | AC-18 | Wireless Access | Retained |
 | AC-18(1) | AUTHENTICATION AND ENCRYPTION | Retained |
-| AC-18(3) | DISABLE WIRELESS NETWORKING | Retained |
-| AC-18(4) | RESTRICT CONFIGURATIONS BY USERS | Retained |
-| AC-18(5) | ANTENNAS AND TRANSMISSION POWER LEVELS | Retained |
+| AC-18(3) | DISABLE WIRELESS NETWORKING | Tailored out — technology not present (scoping) |
+| AC-18(4) | RESTRICT CONFIGURATIONS BY USERS | Tailored out — technology not present (scoping) |
+| AC-18(5) | ANTENNAS AND TRANSMISSION POWER LEVELS | Tailored out — technology not present (scoping) |
 | AC-19 | Access Control for Mobile Devices | Tailored out — technology not present (scoping) |
 | AC-19(5) | FULL DEVICE OR CONTAINER-BASED ENCRYPTION | Tailored out — technology not present (scoping) |
 | AC-20 | Use of External Systems | Retained |
@@ -619,7 +613,7 @@ SP 800-53B: where these apply, *"additional controls from [SP 800-53] are likely
 | SI-4(5) | SYSTEM-GENERATED ALERTS | Retained |
 | SI-4(10) | VISIBILITY OF ENCRYPTED COMMUNICATIONS | Retained |
 | SI-4(12) | AUTOMATED ORGANIZATION-GENERATED ALERTS | Retained |
-| SI-4(14) | WIRELESS INTRUSION DETECTION | Retained |
+| SI-4(14) | WIRELESS INTRUSION DETECTION | Tailored out — technology not present (scoping) |
 | SI-4(20) | PRIVILEGED USERS | Retained |
 | SI-4(22) | UNAUTHORIZED NETWORK SERVICES | Retained |
 | SI-5 | Security Alerts, Advisories, and Directives | Retained |
@@ -668,15 +662,15 @@ Deficiencies in the system. Findings 1–9 were identified while describing and 
 |---|---|---|---|
 | 1 | Wazuh services on Ubuntu Server bound to all interfaces; their unreachability rests entirely on the host firewall | Open | CM-7, SC-7 |
 | 2 | Samba DC has no host firewall; every directory service is reachable from the home network | Open | SC-7, CM-7, AC-3 |
-| 3 | Services outside the approved inbound set answer on the Windows client from the home network: seven TCP ports besides SSH are reachable through enabled firewall allow rules, despite a default-deny inbound policy | Open | CM-7, SC-7 |
-| 4 | Antivirus signatures out of date: every update attempt since early August has failed, most often on name resolution (Finding 10; [evidence appendix §4](evidence-appendix.md#4-windows-client-antivirus-update-failures-by-error-code)) | Open | SI-3 |
+| 3 | Services outside the approved inbound set answer on the Windows client from the home network: seven TCP ports besides SSH are reachable through enabled firewall allow rules, despite a default-deny inbound policy | Open — Windows client retired (P-17); closes when the retirement re-test passes | CM-7, SC-7 |
+| 4 | Antivirus signatures out of date: every update attempt since early August has failed, most often on name resolution (Finding 10; [evidence appendix §4](evidence-appendix.md#4-windows-client-antivirus-update-failures-by-error-code)) | Open — Windows client retired (P-17); closes when the retirement re-test passes | SI-3 |
 | 5 | Files derived from packet captures carry world-readable permissions, while the captures themselves are owner-only; other accounts are currently blocked only by the home folder's permissions ([evidence appendix §7](evidence-appendix.md#7-exercise-file-permissions-and-the-unprivileged-read)) | Open | AC-3 |
 | 6 | Withdrawn — not a system deficiency | — | — |
 | 7 | Cached domain logons enabled; while the domain connection is flagged offline, domain logons may be validated against the local cache without reaching the domain lockout counter (not tested; settings: [evidence appendix §10](evidence-appendix.md#10-cached-logon-settings-on-ubuntu-server)) | Open | AC-7; IA-5(13) (in no SP 800-53B baseline; added, §10.2) |
-| 8 | Windows client operating system past end of support, with no cumulative update installed since May 2023 ([evidence appendix §2](evidence-appendix.md#2-windows-client-model-firmware-date-and-hotfix-list)) | Open | SA-22, SI-2 |
-| 9 | External remote-management agent able to deploy software to a domain member, with no agreement in place ([evidence appendix §5](evidence-appendix.md#5-remote-management-agent-on-the-windows-client)) | Open | CA-3, SA-9, CM-7 |
-| 10 | The Windows client's internet isolation is not in effect: a manually configured default route leaves an open path to the internet while name resolution is disabled, so security updates cannot be retrieved. An earlier disconnect was verified only within its session and did not persist ([evidence appendix §13](evidence-appendix.md#13-the-august-7-disconnect-and-the-september-25-default-route)) | Open | SC-7, SI-3 |
-| 11 | An application Microsoft classifies as adware is installed and running on the Windows client. Malicious code protection has not detected it, and protection against potentially unwanted applications is off. It was installed on July 22, 2026: a paid Bing search ad led to a third-party download site; eight seconds later an ad-tagged PC App Store page opened, and the installer it offered was run four times. A remote-access tool (AnyDesk) ran from the store's download folder and left four inbound firewall allow rules; about twelve minutes later, AnyDesk was installed as a service, which left four more. The store's download manager records one completed download of AnyDesk from AnyDesk's official download address, with the same install path as the service. All eight inbound AnyDesk allow rules remain enabled; AnyDesk itself is no longer installed (evidence appendix [§11](evidence-appendix.md#11-adware-delivery-the-browser-record), [§12](evidence-appendix.md#12-adware-delivery-installer-runs-service-installs-and-firewall-rules), [§6](evidence-appendix.md#6-anydesk-download-record-remaining-firewall-rules-and-the-store-folder)) | Open | CM-7, SI-3 |
+| 8 | Windows client operating system past end of support, with no cumulative update installed since May 2023 ([evidence appendix §2](evidence-appendix.md#2-windows-client-model-firmware-date-and-hotfix-list)) | Open — Windows client retired (P-17); closes when the retirement re-test passes | SA-22, SI-2 |
+| 9 | External remote-management agent able to deploy software to a domain member, with no agreement in place ([evidence appendix §5](evidence-appendix.md#5-remote-management-agent-on-the-windows-client)) | Open — Windows client retired (P-17); closes when the retirement re-test passes and the Action1 closure (P-06) is confirmed | CA-3, SA-9, CM-7 |
+| 10 | The Windows client's internet isolation is not in effect: a manually configured default route leaves an open path to the internet while name resolution is disabled, so security updates cannot be retrieved. An earlier disconnect was verified only within its session and did not persist ([evidence appendix §13](evidence-appendix.md#13-the-august-7-disconnect-and-the-september-25-default-route)) | Open — Windows client retired (P-17); closes when the retirement re-test passes | SC-7, SI-3 |
+| 11 | An application Microsoft classifies as adware is installed and running on the Windows client. Malicious code protection has not detected it, and protection against potentially unwanted applications is off. It was installed on July 22, 2026: a paid Bing search ad led to a third-party download site; eight seconds later an ad-tagged PC App Store page opened, and the installer it offered was run four times. A remote-access tool (AnyDesk) ran from the store's download folder and left four inbound firewall allow rules; about twelve minutes later, AnyDesk was installed as a service, which left four more. The store's download manager records one completed download of AnyDesk from AnyDesk's official download address, with the same install path as the service. All eight inbound AnyDesk allow rules remain enabled; AnyDesk itself is no longer installed (evidence appendix [§11](evidence-appendix.md#11-adware-delivery-the-browser-record), [§12](evidence-appendix.md#12-adware-delivery-installer-runs-service-installs-and-firewall-rules), [§6](evidence-appendix.md#6-anydesk-download-record-remaining-firewall-rules-and-the-store-folder)) | Open — Windows client retired (P-17); closes when the retirement re-test passes | CM-7, SI-3 |
 | 12 | Neither server has malicious code protection meeting the approved values: the Samba DC has none, and Ubuntu Server has only a scheduled rootkit check that raises alerts but does not scan in real time, quarantine, or remove malicious code | Open | SI-3 |
 | 13 | The Samba DC lists its file shares and every domain user account to anonymous requesters on the lab segment; the anonymous-access restriction is left at its default ([evidence appendix §8](evidence-appendix.md#8-anonymous-account-and-share-listing-from-the-lab-segment)) | Open | AC-3, AC-14 |
 
@@ -704,6 +698,8 @@ Deficiencies in the system. Findings 1–9 were identified while describing and 
 |---|---|---|
 | 2026-09-27 | System owner | Assessment of the nine controls named by Findings 1–9 completed, with read-only follow-up checks on September 28 — 174 determination statements, 73 satisfied, 101 other than satisfied (totals as updated September 28, 2026). |
 | 2026-09-28 | System owner | Whole-plan review. Findings 11–13 added as risk factors (§2); policy statement confirmed and clarified (§3); internet exchange row reworded to what the evidence shows (§8). |
+| 2026-10-10 | System owner | Security categorization reviewed after the Windows client's retirement (SP 800-60 Vol 1 Rev 1: categorization should be revisited *"when significant change occurs to the system"*). No information type was held only on the Windows client, each rating's basis (§6.1) still holds, and identity and authentication data (type 1), which sets HIGH on all three objectives, stays on the Samba DC. Ratings unchanged; the system stays HIGH for confidentiality, integrity and availability. |
+| 2026-10-10 | System owner | Disposal review for the Windows client (SP 800-37 Rev 2, Task M-7). Notification: none needed; the system owner is the only user. Control inheritance: reviewed against this plan; no control is inherited from the client or provided by it to another component (no common controls exist, §10.2). Dispositions and values that depended on the client's presence were also updated: the wireless controls (§10.2) and the SSH and directory-service inbound values (assessment plan §4). Security posture reports: not produced; no Authorizing Official is designated (§5) and no continuous monitoring strategy exists. |
 
 ### 13.2 Change record
 
@@ -719,3 +715,7 @@ Deficiencies in the system. Findings 1–9 were identified while describing and 
 | 2026-10-02 | §6, §10.1, §10.2, §11, §12, §13; assessment report §1, §6.1, §7.3, §9.2 | Corrections from the final review before publication. Finding 11's delivery chain worded to the sequences the records show: the search ad led to the download site, and the PC App Store page opened eight seconds later; AnyDesk ran from the store's download folder and was installed as a service about twelve minutes later, and the download manager's record is described without placing its download in that order. §6 cites MITRE ATT&CK T1558.001 for the identity information type's basis. §10.1 uses the approved Finding 5 wording ("broader than the captures'"). §11's introduction states that AC-14 and IA-5(13) were not assessed. §12 names the iam-ad-lab section as Risk response, its new heading. §10.2's Awareness and Training basis states that contingency and incident response training (CP-3, IR-2) is retained for the operator; dispositions and counts are unchanged. Assessment report wording corrected, with no assessment result changed (SP 800-37 Rev 2, Task A-5): §1 states that the scans test the boundary from outside it; §6.1 cites both Microsoft Extended Security Updates pages and the Defender schedule page as checked October 2, 2026; §7.3 adds that the manager's alert archives hold rootcheck alerts; §9.2 states that P-05 removes the cached-logon path instead of re-testing it. |
 | 2026-10-03 | §2, §3, §8, §9, §10.2, §10.3, §11, §12, §13; assessment report At a glance, §1, §3.2, §4.1, §5.1, §5.3, §6, §6.1, §6.2, §8.1, §8.2, §8.3, §9.1, §9.2, §9.3 | Evidence appendix added (`evidence-appendix.md`): the command output and log records behind statements in this plan, the assessment report and the plan of action and milestones, linked from those statements. §2 names the MacBook Air's operating system (macOS). Assessment report §9.2 states that Ubuntu Server's winbind offline flag was observed set while the Samba DC was reachable (September 23 and October 2, 2026), instead of describing the flag as stale and citing September 26. Wording in this plan and the assessment report edited for brevity, grammar and readability. No disposition, finding or assessment result changed (SP 800-37 Rev 2, Task A-5). |
 | 2026-10-04 | Header, §2, §4, §6.1, §6.2, §7, §8, §9, §10.2, §11, §13.2; assessment plan §1, §3, §4, §5, §7; assessment report At a glance, §1–§10; evidence appendix How the records were produced, §1, §3, §4, §6, §7–§10, §12, §13, §15 | Redaction scope revised by the system owner. Components are named by product — Ubuntu Server (SIEM), Samba DC, Windows client, Kali Linux (attack simulation) and MacBook Air (macOS; hypervisor and administration host) — with the role given at first mention; host names in quoted output are shown as recorded; quoted values that were descriptive placeholders use the same replacement values as the other documents; the redaction statement reads "identifying values are replaced or redacted". Earlier change-record rows use the new names. Publication editions are cited in full (SP 800-60 Vol 1 Rev 1 and Vol 2 Rev 1; ATT&CK v19.2). Evidence appendix §6 places the store folder's creation time against the §12 records. Wording in this plan, the assessment plan, the assessment report, the plan of action and milestones and the evidence appendix edited for brevity and readability. No finding, disposition, count or assessment result changed. |
+| 2026-10-10 | §13.1, §13.2 | Security categorization reviewed after the Windows client's retirement and recorded in §13.1. No rating or category changed. |
+| 2026-10-10 | §2, §7, §8, §9, §10.1, §11, §13.1, §13.2; assessment plan §1, §4, §7; evidence appendix §14, §15; README | Windows client removed from the boundary, inventory and plans (`poam.md` P-17 task 3), after P-17 tasks 1 and 2 were completed and ahead of the retirement re-test: computer account deleted October 7, 2026; internal drive sanitized by Purge, verified, validated and certified October 8, 2026. §2 drops the client from the implemented technology and the risk factors, and states that the operator administers both components over SSH from the MacBook Air (the evidence appendix §15 link is removed); §7 states two components, drops the client from the boundary table and the client and the remote-management console from the diagram, records that the Samba DC's home-network adapter is bridged to the MacBook Air's Wi-Fi, and names the Samba DC as the only component connected to the excluded home network; §8 drops the Action1 exchange, stating that no remote-management service is connected and that the account closure is tracked in `poam.md` P-06, drops the client from the home-network and internet rows (the internet row's consideration now cites Finding 2 only), and names both components in the MacBook Air row; §9 drops the client and its retirement sentence ([evidence appendix §14](evidence-appendix.md#14-boot-camp-on-the-windows-client) keeps the record of its hardware); §10.1 updates the component count and the security-domains evidence; §11 records Findings 3, 4, 8, 9, 10 and 11 as open, Windows client retired, closing when the retirement re-test passes (Finding 9 also on confirmation of the Action1 closure), with each finding's description unchanged. The Task M-7 disposal review is recorded in §13.1. Assessment plan §4: directory services on the Samba DC are approved from the lab segment only (`poam.md` P-01), and the SSH value names the two servers instead of all three components; §1 states that its scope and counts are as assessed in September 2026; §4 notes that the CM-07 row is the value as amended for re-tests; §7 records its approval on October 10, 2026 and keeps, verbatim, the value it replaced. Evidence appendix §14's lead-in now supports the assessment report §6.1 and describes the client in the past tense; §15's no longer cites the system security plan §2. README: two components. |
+| 2026-10-10 | §10.2, §13.2 | Re-tailoring after the Windows client's retirement, control by control: AC-18(3), AC-18(4), AC-18(5) and SI-4(14) tailored out — technology not present (scoping); neither remaining component has a wireless device of its own (checked October 10, 2026). AC-18 and AC-18(1) stay retained: the Samba DC's home-network adapter is bridged to the MacBook Air's Wi-Fi. 85 tailored out; 286 in the tailored baseline. Acceptance of the risk from tailored-out controls remains pending Authorizing Official review. |
+| 2026-10-10 | §3, §10.2, §13.2 | Parameter values for MP-6 (Media Sanitization) and SR-12 (Component Disposal) assigned for the Windows client's disposal; §3 adds SP 800-88 Rev 2, which the MP-6 value cites. |
