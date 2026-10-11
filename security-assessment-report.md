@@ -9,6 +9,8 @@
 > - **Information exchange.** No information exchange agreements exist for any connection. The one external service, a remote-management agent on the Windows client, runs with no agreement, oversight, or monitoring.
 > - **Windows client.** It runs an unsupported operating system with no security update since May 2023. Its intended internet isolation is not in effect and name resolution is disabled. Its antivirus has not updated since August, with most update attempts failing on name resolution, and software Microsoft classifies as adware runs on it undetected.
 > - **Every component.** Flaw scanning is absent or not working, no current flaw data is reported, nothing tests updates before installation, and services beyond the mission run.
+>
+> **Re-test, October 10, 2026.** The Windows client was retired without remediation (plan of action and milestones, P-17), and its retirement re-test passed (§12). The results above stand as assessed.
 
 ---
 
@@ -346,7 +348,7 @@ UDP 53, 88, 137, and 389 answered `open … udp-response` from both. Closed port
 
 ### 5.3 Determinations — CM-7
 
-The approved values (plan §4) define mission-essential capabilities as detection, identity services, and evidence production, and the required inbound set as SSH from the MacBook Air, the SIEM dashboard, and directory services from the lab segment and the Windows client only.
+The approved values as assessed (plan §4; plan §7 quotes the inbound value this assessment applied) define mission-essential capabilities as detection, identity services, and evidence production, and the required inbound set as SSH from the MacBook Air, the SIEM dashboard, and directory services from the lab segment and the Windows client only.
 
 | Statement | Determination statement (summary) | Ubuntu Server | Samba DC |
 |---|---|---|---|
@@ -526,7 +528,7 @@ Kali Linux has no route to the client.
 
 ### 6.2 Determinations
 
-For this component, the approved values (plan §4) require inbound SSH from the MacBook Air only and malicious code protection that is signature-based, scans weekly, scans in real time at the endpoint, quarantines, and alerts the system owner. SI-03_ODP[05] applies only when "take action" is selected; quarantine is selected instead.
+For this component, the approved values as assessed (plan §4; plan §7 quotes the inbound value this assessment applied) require inbound SSH from the MacBook Air only and malicious code protection that is signature-based, scans weekly, scans in real time at the endpoint, quarantines, and alerts the system owner. SI-03_ODP[05] applies only when "take action" is selected; quarantine is selected instead.
 
 | Statement | Determination statement (summary) | Result | Basis |
 |---|---|---|---|
@@ -782,11 +784,11 @@ The approved values (plan §4) are ODP[01] 5 consecutive attempts, ODP[02] 15 mi
 
 ## 10. CA-3 — Information Exchange
 
-Documentation assessment; no commands. Scope: all information exchanges (system security plan §8).
+Documentation assessment; no commands. Scope: all information exchanges (system security plan §8; references to §8 in this section are to its records as assessed).
 
 ### 10.1 Evidence
 
-The system security plan §8 records five information exchanges and states: *"No information exchange agreements exist; none of the connected systems is separately authorized."* Each exchange is documented in a summary table — counterpart, components, what crosses the boundary, and security consideration — but not as an agreement. The one external service, the remote-management agent on the Windows client, runs with no agreement (Finding 9). No exchange or access control policy is issued (system security plan §3).
+The system security plan §8 recorded five information exchanges and stated: *"No information exchange agreements exist; none of the connected systems is separately authorized."* Each exchange was documented in a summary table — counterpart, components, what crosses the boundary, and security consideration — but not as an agreement. The one external service, the remote-management agent on the Windows client, ran with no agreement (Finding 9). No exchange or access control policy is issued (system security plan §3).
 
 Approved parameter values (plan §4): the agreement types are service level or user agreements for external services and an information exchange record in the system security plan for every other exchange (CA-03_ODP[01]; the second is an organization-defined type, CA-03_ODP[02]); the review-and-update frequency is annual (CA-03_ODP[03]).
 
@@ -816,7 +818,7 @@ Documentation assessment; no commands. Scope: the external system service — th
 
 ### 11.1 Evidence
 
-The external system service reports the Windows client's inventory to a vendor cloud console, and the console can push software to the client. No agreement covers the connection (system security plan §8, remote-management cloud console row). No organizational security or privacy requirements are issued (system security plan §3), and no oversight, roles, or monitoring for the service are documented.
+The external system service reports the Windows client's inventory to a vendor cloud console, and the console can push software to the client. No agreement covers the connection (system security plan §8, remote-management cloud console row, as assessed). No organizational security or privacy requirements are issued (system security plan §3), and no oversight, roles, or monitoring for the service are documented.
 
 Approved parameter values (plan §4): the controls to be employed are the provider's published security commitments (SA-09_ODP[01]); the monitoring is an annual review of the provider's security documentation (SA-09_ODP[02]).
 
@@ -834,3 +836,45 @@ Approved parameter values (plan §4): the controls to be employed are the provid
 | SA-09c | The defined monitoring is employed on an ongoing basis | Other than satisfied | No monitoring of the provider's compliance occurs. |
 
 The other-than-satisfied results are carried by Finding 9 (remote-management agent, no agreement in place) and go to the plan of action and milestones. No new finding is raised.
+
+---
+
+## 12. Re-test — Windows Client Retirement (P-17)
+
+SP 800-37 Rev 2 Task A-5: *"The assessors update the assessment reports with the findings from the reassessment, but do not change the original assessment results."* The determinations in §2–§11 are unchanged. No control or determination statement was reassessed; the Windows client's results in §6 stand as assessed.
+
+**What was re-tested.** The plan of action and milestones entry P-17 retires the Windows client without remediation. Its re-test: *"Retirement is verified: the domain no longer lists the computer account; the Action1 console lists no endpoint (P-06); the client is absent from the network; the certificate of sanitization is on file; the component inventory, boundary and plans record the retirement."*
+
+**Computer account.** On the Samba DC (read October 10, 2026, 19:13 UTC):
+
+```
+$ sudo samba-tool computer list
+SAMBA-DC$
+UBUNTU-TARGET$
+$ sudo samba-tool computer show DESKTOP-QLHBOB7 --attributes=sAMAccountName
+ERROR: Unable to find computer "DESKTOP-QLHBOB7$"
+…
+```
+
+`DESKTOP-QLHBOB7` is the Windows client's computer name ([evidence appendix §3](evidence-appendix.md#3-windows-client-domain-membership)).
+
+**Action1 console.** On October 1, 2026, the console's Endpoints page read "No entries". On October 10, 2026, the console showed only its "Account Pending Closure" page, with no endpoint view: closure was requested on October 1, 2026, and Action1 states that on October 31, 2026, it will attempt to uninstall any remaining agents, and the data will be permanently erased from Action1 cloud servers. Confirming the account closure belongs to P-06's re-test.
+
+**Network.** From the MacBook Air on the home network (read October 10, 2026, 19:50 UTC), against the address the Windows client held when assessed (§6.1):
+
+```
+$ ipconfig getifaddr en0
+192.0.2.180
+$ sudo nmap -n -Pn --reason -p 22,135,139,445,5040,5357,7680,49668 192.0.2.240
+…
+Nmap done: 1 IP address (0 hosts up) scanned in 1.46 seconds
+…
+```
+
+The eight ports are those open on the client in §6.1.
+
+**Certificate of sanitization.** On file in the system owner's records, unchanged since its completion on October 8, 2026: Purge by the drive's ATA Enhanced Security Erase command; verified by the completion status of every command, the drive's security state and health, and a read of every addressable byte, all zero; validated by the system owner; concurrence pending Authorizing Official review.
+
+**Inventory, boundary and plans.** The system security plan's authorization boundary (§7), information exchanges (§8), and component inventory (§9) no longer include the Windows client, and the README states two components. The client remains named where its disposal, findings, and change history are recorded (system security plan §10.2 MP-6 and SR-12 values, §11, and §13) and in one referenced artifact (system security plan §12).
+
+**Result.** Passed (system owner's determination, October 10, 2026). Entry and finding status: plan of action and milestones P-17, and system security plan §11.

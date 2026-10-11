@@ -1,6 +1,6 @@
 # Plan of Action and Milestones — Cybersecurity Home Lab (HL-01)
 
-> **At a glance.** This is the lab's hardening plan. The [security assessment](security-assessment-report.md) of nine controls produced 174 determination statements: 73 satisfied and 101 other than satisfied. Every other-than-satisfied statement maps to at least one of the 28 entries below (traceability, §6). The entries cover the 12 open findings in the [system security plan](system-security-plan.md), the deficiencies that carry no finding, and three items the system owner raised in review rather than from a determination statement. Each entry names the fix, how it will be re-tested, and when; the reassessment result will be added to the assessment report (or, for the three owner-raised items, the system security plan). The Windows client has been retired without remediation (P-17): six of the entries that concern only that client are superseded by P-17 and close when its retirement is verified. Three residual gaps are proposed for risk acceptance, pending Authorizing Official review. The target date for all open entries is October 18, 2026.
+> **At a glance.** This is the lab's hardening plan. The [security assessment](security-assessment-report.md) of nine controls produced 174 determination statements: 73 satisfied and 101 other than satisfied. Every other-than-satisfied statement maps to at least one of the 28 entries below (traceability, §6). The entries cover the findings in the [system security plan](system-security-plan.md) (§11 gives each one's status), the deficiencies that carry no finding, and three items the system owner raised in review rather than from a determination statement. Each entry names the fix, how it will be re-tested, and when; the reassessment result will be added to the assessment report (or, for the three owner-raised items, the system security plan). The Windows client has been retired without remediation, and its retirement was verified on October 10, 2026: P-17 and the six entries it superseded are closed. Retirement is risk avoidance, the system owner's proposed risk response, pending Authorizing Official review. Three residual gaps are proposed for risk acceptance, pending Authorizing Official review. The target date for all open entries is October 18, 2026.
 
 ---
 
@@ -87,7 +87,7 @@ For entries from a finding, the Controls column lists the finding's candidate co
 
 | | |
 |---|---|
-| Status | Superseded by P-17 (October 1, 2026): the Windows client is to be retired without remediation. This entry closes when the retirement is verified. |
+| Status | Closed October 10, 2026: superseded by P-17 (October 1, 2026); the Windows client's retirement was verified (report §12). |
 | Statements | CM-07a (print spooler); CM-07b.[02]–[03]; SC-07a.[01], [03] (firewall logging); SC-07a.[02], [04] (inbound) — Windows client |
 | Evidence | Eight TCP ports answer from the home network, seven outside the approved set; the SSH rule accepts any remote address; firewall logging is off (report §6.1). |
 | Tasks | 1. Restrict the SSH rule's remote address to the MacBook Air (`Set-NetFirewallRule -RemoteAddress`). 2. Disable the File and Printer Sharing and Network Discovery rule groups, and the Delivery Optimization and Connected Devices Platform allow rules (`Disable-NetFirewallRule`). 3. Remove the unused remote-desktop and AnyDesk allow rules. 4. Stop and disable the print spooler, per Microsoft's published workaround; printing is not a mission capability. 5. Log blocked and allowed connections on all three profiles (`Set-NetFirewallProfile -LogBlocked True -LogAllowed True`). |
@@ -125,7 +125,7 @@ For entries from a finding, the Controls column lists the finding's candidate co
 
 | | |
 |---|---|
-| Status | Superseded by P-17 (October 1, 2026): the Windows client is to be retired without remediation. This entry closes when the retirement is verified. |
+| Status | Closed October 10, 2026: superseded by P-17 (October 1, 2026); the Windows client's retirement was verified (report §12). |
 | Statements | SC-07a.[02], [04] (outbound); SC-07c — Windows client |
 | Evidence | A manually configured default route reaches the internet by address; name resolution is disabled (report §6.1); an earlier disconnect did not persist (system security plan §11; [evidence appendix §13](evidence-appendix.md#13-the-august-7-disconnect-and-the-september-25-default-route)). |
 | Design change | The system owner changed the design on September 29, 2026: the client keeps outbound internet access until it is retired, and isolation is no longer intended. The system owner's reasons: the attempts to isolate the client did not hold (Finding 10), and the client is retired after remediation. |
@@ -137,7 +137,7 @@ For entries from a finding, the Controls column lists the finding's candidate co
 
 | | |
 |---|---|
-| Status | Superseded by P-17 (October 1, 2026): the Windows client is to be retired without remediation. This entry closes when the retirement is verified. |
+| Status | Closed October 10, 2026: superseded by P-17 (October 1, 2026); the Windows client's retirement was verified (report §12). |
 | Statements | CM-07a and CM-07b.[04] (adware); SI-03a.[01]; SI-03a.[02] — Windows client |
 | Evidence | An application Microsoft classifies as adware runs as three processes; antivirus has not detected it, and protection against potentially unwanted applications is off (report §6.1). |
 | Tasks | 1. Uninstall the application and confirm its processes and folder are gone. 2. Turn on blocking of potentially unwanted applications (`Set-MpPreference -PUAProtection Enabled`). 3. Run a full scan once signatures are current (P-16). |
@@ -217,7 +217,7 @@ For entries from a finding, the Controls column lists the finding's candidate co
 
 | | |
 |---|---|
-| Status | Superseded by P-17 (October 1, 2026): the Windows client is to be retired without remediation. This entry closes when the retirement is verified. |
+| Status | Closed October 10, 2026: superseded by P-17 (October 1, 2026); the Windows client's retirement was verified (report §12). |
 | Statements | SI-03a.[01] (signature part); SI-03b — Windows client |
 | Evidence | Signatures are dated August 6, 2026. Defender's log records its last successful update on August 7 and only failed attempts after that, most often on name resolution, which is disabled (report §6.1). `SignatureScheduleDay` is at Microsoft's default (8), and `SignatureUpdateInterval` reads 0; with 8, Microsoft documents that Defender checks for definition updates at a default frequency (report §6.1). |
 | Tasks | After P-07 restores name resolution, set an explicit daily signature check (`Set-MpPreference -SignatureScheduleDay 0`). |
@@ -228,19 +228,20 @@ For entries from a finding, the Controls column lists the finding's candidate co
 
 | | |
 |---|---|
+| Status | Closed October 10, 2026: re-test passed (report §12). |
 | Statements | SA-22a; SA-22b; SI-02a.[03]; SI-02c.[01]; SI-02c.[02] — Windows client. Every other Windows client statement that is other than satisfied also maps here (§6). |
 | Evidence | Windows 10 left support October 14, 2025; no security update since May 2023 is installed; whether newer firmware exists could not be established (report §6.1). |
 | Constraint | Microsoft provides Windows 10 security updates after October 14, 2025 only through Extended Security Updates. Its consumer program excludes *"Devices joined to an Active Directory domain …"* Its program for organizations is sold per device; it is not used, because remediation is limited to no-cost actions (§1). |
 | Risk response | Risk avoidance: the system owner decided on October 1, 2026, to retire the client early, without remediating it. SP 800-39 describes risk avoidance as *"taking specific actions to eliminate the activities or technologies that are the basis for the risk"*. This is the system owner's proposed risk response, pending Authorizing Official review (§1). |
 | Tasks | Dispose of the client as a system element removed from operation (SP 800-37 Rev 2, Task M-7): 1. Delete the client's computer account from the domain. 2. Sanitize its storage media with the Purge method of SP 800-88 Rev 2, since the system is categorized HIGH for confidentiality and the media will be reused and stay under the system owner's control; validate the result and complete a certificate of sanitization. 3. Update the component inventory, the authorization boundary and the plans. The Action1 endpoint and account are handled in P-06. |
 | Re-test | Retirement is verified: the domain no longer lists the computer account; the Action1 console lists no endpoint (P-06); the client is absent from the network; the certificate of sanitization is on file; the component inventory, boundary and plans record the retirement. |
-| Milestones | Retirement decided by the system owner (October 1, 2026). Computer account deleted (October 7, 2026). Media sanitized by Purge (ATA Enhanced Security Erase), verified with a full read of the drive, and validated; certificate of sanitization completed (October 8, 2026). Inventory, boundary and plans updated (October 10, 2026). Target date October 18, 2026. |
+| Milestones | Retirement decided by the system owner (October 1, 2026). Computer account deleted (October 7, 2026). Media sanitized by Purge (ATA Enhanced Security Erase), verified with a full read of the drive, and validated; certificate of sanitization completed (October 8, 2026). Inventory, boundary and plans updated (October 10, 2026). Retirement re-test passed (October 10, 2026). Target date October 18, 2026. |
 
 ### P-18 — Windows detections not set to quarantine
 
 | | |
 |---|---|
-| Status | Superseded by P-17 (October 1, 2026): the Windows client is to be retired without remediation. This entry closes when the retirement is verified. |
+| Status | Closed October 10, 2026: superseded by P-17 (October 1, 2026); the Windows client's retirement was verified (report §12). |
 | Statements | SI-03c.02[01] — Windows client |
 | Evidence | The four default threat actions are left at Microsoft's default, which applies the action Microsoft's threat data recommends; quarantine is not configured (report §6.1, §6.2). |
 | Tasks | Set the low, moderate, high and severe default threat actions to `Quarantine` (`Set-MpPreference`). |
@@ -320,7 +321,7 @@ For entries from a finding, the Controls column lists the finding's candidate co
 
 | | |
 |---|---|
-| Status | Superseded by P-17 (October 1, 2026): the Windows client is to be retired without remediation, and this entry's acceptance proposal is withdrawn. This entry closes when the retirement is verified. |
+| Status | Closed October 10, 2026: superseded by P-17 (October 1, 2026), and this entry's acceptance proposal is withdrawn; the Windows client's retirement was verified (report §12). |
 | Statements | SI-02a.[01]–[02]; SI-03c.02[02]; SC-07a.[01], [03] (monitoring part) — Windows client |
 | Evidence | No scanner or SIEM agent covers the client, and nothing alerts the system owner beyond the device itself (report §6.2). The client and Ubuntu Server share no route (report §3.1, §6.1). |
 | Tasks | Review Defender's detection events (IDs 1116 and 1117 in its operational log) weekly until retirement. |
@@ -411,3 +412,4 @@ Total: 29 + 28 + 29 + 15 = **101**.
 | 2026-10-07 | §1, §4 (P-17), §7 | P-17 task 1 completed: the Windows client's computer account was deleted from the domain on October 7, 2026; the domain no longer lists it. P-17 stays open until the client's retirement is verified. §1 states that no organizational risk tolerance has been stated and that the acceptance proposals cannot be decided until one is. No other entry, status or date changed. |
 | 2026-10-08 | §4 (P-17), §7 | P-17 task 2 completed: on October 8, 2026, the Windows client's internal drive was sanitized by Purge, using the drive's ATA Enhanced Security Erase command. Verification confirmed that the command completed, and a read of the whole drive found every addressable byte to be zero. The result was validated and a certificate of sanitization completed. P-17 stays open until the client's retirement is verified. No other entry, status or date changed. |
 | 2026-10-10 | At a glance, §3 (P-01, P-06), §4 (P-17), §7 | P-17 task 3 completed on October 10, 2026: the component inventory, the authorization boundary and the plans were updated for the Windows client's retirement (system security plan §2, §7–§11, §13; assessment plan §1, §4, §7; evidence appendix §14, §15; README), ahead of the retirement re-test. Carried out with it: P-06 task 3 (the Action1 exchange removed from the system security plan §8 and the agent from §9; the task now reads "With P-17 task 3") and the assessment plan part of P-01 task 3 (directory services approved from the lab segment only; P-01 task 3 now states that value; the firewall rule itself is not yet made). The assessment plan's SSH value names the two servers instead of all three components. P-06 task 2 was completed on October 8, 2026, with P-17 task 2: the agent was removed with the sanitized media. At a glance states that the client has been retired. P-17's risk response no longer states that the client stays in the boundary. P-17, P-06 and P-01 stay open until their re-tests pass; the six entries superseded by P-17 stay open until the retirement is verified. No other entry, status or date changed. |
+| 2026-10-10 | At a glance, §3 (P-03, P-07, P-08), §4 (P-16, P-17, P-18), §5 (P-26), §7 | P-17's re-test passed on October 10, 2026 (report §12). P-17 closed, and with it the six entries it superseded (P-03, P-07, P-08, P-16, P-18, P-26); P-17 gains a status line, the six entries' status lines now read closed, and P-17's milestones record the re-test. At a glance states that the retirement was verified and these entries are closed, adds that retirement is the system owner's proposed risk response pending Authorizing Official review, no longer counts the open findings, and points to the system security plan §11 for each finding's status. P-06 stays open. No other entry, status or date changed. |
