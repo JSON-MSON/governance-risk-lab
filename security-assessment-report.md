@@ -1,6 +1,6 @@
 # Security Assessment Report — Cybersecurity Home Lab (HL-01)
 
-> **At a glance.** As assessed September 24–28, 2026, a partial self-assessment of the nine controls named in the [security assessment plan](security-assessment-plan.md) is complete: 174 determination statements, 73 satisfied and 101 other than satisfied.
+> **At a glance.** As assessed September 24–28, 2026, a partial self-assessment of the nine controls named in the [security assessment plan](security-assessment-plan.md) is complete: 174 results of 73 determination statements, each rated per component (73 satisfied and 101 other than satisfied).
 >
 > - **Ubuntu Server (SIEM)** runs supported software and is isolated; its firewall allows only its dashboard and SSH (SSH from any address but one IPv4 address). Its security fixes are at least 51 days past release against a 30-day limit.
 > - **Samba DC** runs supported software and patches within days, but has no firewall: every directory service and SSH is reachable from the whole home network, and no firewall or SIEM agent records traffic at its interfaces. With no credentials at all, a host on the lab segment, outside the boundary, can list every domain user account and the Samba DC's file shares.
@@ -11,6 +11,8 @@
 > - **Every component.** Flaw scanning is absent or not working, no current flaw data is reported, nothing tests updates before installation, and services beyond the mission run.
 >
 > **Re-test, October 10, 2026.** The Windows client was retired without remediation (plan of action and milestones, P-17), and its retirement re-test passed (§12). The results above stand as assessed.
+>
+> **Re-tests, October 12, 2026.** The Samba DC's host firewall (P-01) and anonymous-access fix (P-02, for the share and account listings over file sharing), and Ubuntu Server's change turning off cached logons (P-05), passed their re-tests. The Samba DC still accepts an anonymous file-sharing session and still lists all 8 domain user accounts over the network RPC transport (Finding 14; §13).
 
 ---
 
@@ -18,7 +20,7 @@
 
 This is a partial self-assessment of the nine controls named in the security assessment plan ("the plan" below), using SP 800-53A Rev 5 (Release 5.2.0) procedures, which are unchanged from the base edition for these controls. Each determination statement is rated *satisfied* or *other than satisfied*. The assessor is the system owner; no independent assessor exists (plan §2). Evidence is quoted from live command output, with identifying values replaced or redacted. Timestamps from Ubuntu Server and the Samba DC are UTC; both clocks are set to UTC, and on September 28 Ubuntu Server reported its clock as not synchronized ([evidence appendix §1](evidence-appendix.md#1-wazuh-agent-list-and-server-clocks)). The Windows client's timestamps are as recorded on the host, which displayed local time at UTC−7; its clock was not exact ([evidence appendix](evidence-appendix.md#how-the-records-were-produced)).
 
-**Sequence and schedule.** Evidence was gathered September 24–28, 2026, not in one day as plan §6 scheduled. The September 28 checks were read-only: the server clocks, the Wazuh agent list, Ubuntu Server's cached-logon settings, and the Windows client's SSH rule address filter. The servers' SA-22, SI-2, CM-7, and SC-7 evidence follows the plan's §5 order. Their SI-3 evidence was gathered on September 25 with the Windows client's, before AC-3 (September 26) and AC-7 (September 27, UTC). The Windows client's evidence for all its controls (SA-22, SI-2, CM-7, SC-7, SI-3) was gathered in one connection window on September 25, except where §6.1 gives another date (its firewall profile settings were read on September 17). Two planned scans were not run: Ubuntu Server was not scanned from the home network, where it has no interface (§3.1), and the Windows client was not scanned from Kali Linux (attack simulation), which has no route to it (§6.1). No control was remediated during the assessment, so none was re-tested (plan §3). Every other-than-satisfied result goes to the plan of action and milestones.
+**Sequence and schedule.** Evidence was gathered September 17–28, 2026, not in one day as plan §6 scheduled. Two reads came before September 24: the Windows client's firewall profile settings (September 17) and Ubuntu Server's cached-logon configuration and winbind offline flag (September 23, §9.2). The September 28 checks were read-only: the server clocks, the Wazuh agent list, Ubuntu Server's cached-logon settings, the Windows client's domain membership, and its SSH rule address filter. The servers' SA-22, SI-2, CM-7, and SC-7 evidence follows the plan's §5 order. Their SI-3 evidence was gathered on September 25 with the Windows client's, before AC-3 (September 26) and AC-7 (September 27, UTC). The Windows client's evidence for all its controls (SA-22, SI-2, CM-7, SC-7, SI-3) was gathered in one connection window on September 25, except where §6.1 gives another date. Two planned scans were not run: Ubuntu Server was not scanned from the home network, where it has no interface (§3.1), and the Windows client was not scanned from Kali Linux (attack simulation), which has no route to it (§6.1). No control was remediated during the assessment, so none was re-tested (plan §3). Every other-than-satisfied result goes to the plan of action and milestones.
 
 **Scan sources.** Port scans were run from Kali Linux on the lab segment and from the MacBook Air (macOS; hypervisor and administration host) on the home network. Both sit outside the authorization boundary, so the scans test the boundary from outside it.
 
@@ -386,9 +388,9 @@ DisplayVersion : 22H2
 …
 ```
 
-The installed build is the May 2023 cumulative update; Microsoft has published later Windows 10 22H2 security updates, including one on August 11, 2026, none of which is installed. Windows 10 reached end of support on October 14, 2025. Microsoft's consumer Extended Security Updates program runs through October 12, 2027 but excludes devices joined to an Active Directory domain, which this client is ([evidence appendix §3](evidence-appendix.md#3-windows-client-domain-membership)); organizations can buy Extended Security Updates per device. The operating system license listing (`slmgr /dlv`) was read; it does not list add-on licenses, and no Extended Security Updates enrollment was found. The newest entry `Get-HotFix` lists as a security update is dated May 5, 2023 ([evidence appendix §2](evidence-appendix.md#2-windows-client-model-firmware-date-and-hotfix-list)). Sources (checked September 24, 2026): https://support.microsoft.com/en-us/windows/deployment/updates-lifecycle/windows-10-support-has-ended-on-october-14-2025; https://support.microsoft.com/en-us/servicing/os/windows-10/2026/08/kb5120249-windows-10-21h2-22h2-security-update; https://www.microsoft.com/en-us/windows/extended-security-updates and https://learn.microsoft.com/en-us/windows/whats-new/extended-security-updates (both checked October 2, 2026).
+The installed build is the May 2023 cumulative update; Microsoft has published later Windows 10 22H2 security updates, including one on August 11, 2026, none of which is installed. Windows 10 reached end of support on October 14, 2025. Microsoft's consumer Extended Security Updates program runs through October 12, 2027 but excludes devices joined to an Active Directory domain, which this client is (September 28; [evidence appendix §3](evidence-appendix.md#3-windows-client-domain-membership)); organizations can buy Extended Security Updates per device. The operating system license listing (`slmgr /dlv`) was read; it does not list add-on licenses, and no Extended Security Updates enrollment was found. The newest entry `Get-HotFix` lists as a security update is dated May 5, 2023 (September 24; [evidence appendix §2](evidence-appendix.md#2-windows-client-model-firmware-date-and-hotfix-list)). Sources (checked September 24, 2026): https://support.microsoft.com/en-us/windows/deployment/updates-lifecycle/windows-10-support-has-ended-on-october-14-2025; https://support.microsoft.com/en-us/servicing/os/windows-10/2026/08/kb5120249-windows-10-21h2-22h2-security-update; https://www.microsoft.com/en-us/windows/extended-security-updates and https://learn.microsoft.com/en-us/windows/whats-new/extended-security-updates (both checked October 2, 2026).
 
-**Firmware.** The client is physical, so its firmware is inside the boundary: a vendor release dated October 6, 2023 (read on the client, September 24; [evidence appendix §2](evidence-appendix.md#2-windows-client-model-firmware-date-and-hotfix-list)). The vendor is reported to distribute firmware for this model only with its desktop operating system updates (https://eclecticlight.co/2024/09/23/firmware-updates-with-macos-15-0-14-7-and-13-7/). By its model identifier, the client is a Mac mini (Late 2014) (https://support.apple.com/en-us/102852), which is on macOS Monterey's compatibility list (https://support.apple.com/en-us/103260) and not on the list for the next release, macOS Ventura (https://support.apple.com/en-us/102861); Monterey is therefore the last operating system version the model supports, and it has been unsupported since September 2024 (https://en.wikipedia.org/wiki/MacOS_Monterey). Whether newer firmware was released for this model could not be established.
+**Firmware.** The client is physical, running Windows through Boot Camp on Apple hardware (records of October 1, 2026; [evidence appendix §14](evidence-appendix.md#14-boot-camp-on-the-windows-client)), so its firmware is inside the boundary: a vendor release dated October 7, 2023 (read on the client, September 24; [evidence appendix §2](evidence-appendix.md#2-windows-client-model-firmware-date-and-hotfix-list)). The vendor is reported to distribute firmware for this model only with its desktop operating system updates (https://eclecticlight.co/2024/09/23/firmware-updates-with-macos-15-0-14-7-and-13-7/). By its model identifier, the client is a Mac mini (Late 2014) (https://support.apple.com/en-us/102852), which is on macOS Monterey's compatibility list (https://support.apple.com/en-us/103260) and not on the list for the next release, macOS Ventura (https://support.apple.com/en-us/102861); Monterey is therefore the last operating system version the model supports, and it has been unsupported since September 2024 (https://en.wikipedia.org/wiki/MacOS_Monterey). Whether newer firmware was released for this model could not be established.
 
 **Network path and name resolution.**
 
@@ -495,7 +497,7 @@ Its folder was created July 22, 2026 ([evidence appendix §6](evidence-appendix.
 
 **Running services** include `Spooler`, Bluetooth services, `SEMgrSvc` (payments and NFC), `SSDPSRV`, `fdPHost`, `FDResPub`, `DiagTrack`, and `LMS`, alongside the adware and the remote-management agent.
 
-**Firewall.** On in all three profiles, `BlockInbound,AllowOutbound`, with blocked and allowed connections not logged (September 17). Enabled inbound allow rules include SSH from any address (`RemoteAddress : Any`, September 28), file and printer sharing, network discovery, Delivery Optimization, Connected Devices Platform, a remote desktop rule on TCP 33890 (remote desktop connections are denied and its service is stopped), and AnyDesk rules whose program files are absent or inside the adware's folder ([evidence appendix §6](evidence-appendix.md#6-anydesk-download-record-remaining-firewall-rules-and-the-store-folder)).
+**Firewall.** On in all three profiles, `BlockInbound,AllowOutbound`, with blocked and allowed connections not logged (September 17). Enabled inbound allow rules include SSH from any address (`RemoteAddress : Any`, September 28), file and printer sharing, network discovery, Delivery Optimization, Connected Devices Platform, a remote desktop rule on TCP 33890 (remote desktop connections are denied and its service is stopped), and AnyDesk rules whose program files are absent or inside the adware's folder ([evidence appendix §6](evidence-appendix.md#6-anydesk-download-record-remaining-firewall-rules-and-the-store-folder), which shows the same remote desktop and AnyDesk rows in the client's enabled-rule listing of October 1, 2026).
 
 **Scan from the home network** (MacBook Air, all TCP ports):
 
@@ -563,7 +565,7 @@ For this component, the approved values as assessed (plan §4; plan §7 quotes t
 | SI-03c.02[02] | Mechanisms are configured to alert the system owner in response to detection | Other than satisfied | No alert path to the system owner beyond the device itself. |
 | SI-03d | False positives and their potential impact on availability are addressed | Other than satisfied | No procedure exists. |
 
-**Findings raised by this assessment:** 10 (internet isolation not in effect; name resolution disabled) and 11 (adware installed and running). Finding 4 (antivirus signatures out of date) fails most often on name resolution, which Finding 10 records as disabled. All three are recorded in the system security plan (§11).
+**Findings raised by this assessment:** 10 (internet isolation not in effect; name resolution disabled) and 11 (adware installed and running). The signature updates behind Finding 4 (antivirus signatures out of date) fail most often on name resolution, which Finding 10 records as disabled. All three are recorded in the system security plan (§11).
 
 ---
 
@@ -621,7 +623,7 @@ $ dpkg -l | grep -iE 'clamav|rkhunter|chkrootkit|mdatp|falcon|sophos|eset' | cat
 $
 ```
 
-The component inventory lists Samba, Kerberos tools, OpenSSH, and an inactive host firewall on this host, and no SIEM agent. No report address is set for unattended upgrades, and no mail program is installed (§4.1).
+The component inventory, as assessed, listed Samba, Kerberos tools, OpenSSH, and an inactive host firewall on this host, and no SIEM agent. No report address was set for unattended upgrades, and no mail program was installed (§4.1).
 
 ### 7.3 Determinations
 
@@ -878,3 +880,238 @@ The eight ports are those open on the client in §6.1.
 **Inventory, boundary and plans.** The system security plan's authorization boundary (§7), information exchanges (§8), and component inventory (§9) no longer include the Windows client, and the README states two components. The client remains named where its disposal, findings, and change history are recorded (system security plan §10.2 MP-6 and SR-12 values, §11, and §13) and in one referenced artifact (system security plan §12).
 
 **Result.** Passed (system owner's determination, October 10, 2026). Entry and finding status: plan of action and milestones P-17, and system security plan §11.
+
+---
+
+## 13. Re-tests — Samba DC Firewall and Anonymous Access; Ubuntu Server Cached Logons (October 12, 2026)
+
+As in §12, these entries record reassessment results beside the original results (SP 800-37 Rev 2, Task A-5); the determinations in §2–§11 are unchanged, and no determination statement was reassessed. Times are UTC unless marked otherwise; one scan ran at 00:17 UTC on October 13 (20:17 EDT, October 12). Output was recorded at the time with `script` or `tee`; terminal control sequences are removed, and sudo password prompts are left out.
+
+### 13.1 P-01 and P-02 — Samba DC
+
+**What was re-tested.** P-01 gives the Samba DC a host firewall: default deny inbound, SSH from the MacBook Air on the home network, directory services from the lab segment only, and logging at `medium`. P-02 sets `restrict anonymous = 2`. P-01's re-test: *"Repeat the assessment plan §5 scans. From the MacBook Air on the home network, only SSH answers. From Kali Linux (attack simulation) on the lab segment, only the directory ports answer. The log records connections."* P-02's re-test: *"From both segments, with no credentials, repeat the anonymous share listing and account listing over the file-sharing transport. Then repeat the account listing directly over the network RPC transport (`ncacn_ip_tcp`). … If it still answers, a new finding is raised."*
+
+**Firewall as applied** on the Samba DC (P-01; the status printed by the apply command, whose command line is not recorded):
+
+```
+Status: active
+Logging: on (medium)
+Default: deny (incoming), allow (outgoing), disabled (routed)
+New profiles: skip
+
+To                         Action      From
+--                         ------      ----
+22/tcp on enp2s0           ALLOW IN    192.0.2.180              # P-01 SSH from MacBook Air
+53,88,135,139,389,445,464,636,3268,3269,49152:65535/tcp on enp26s0 ALLOW IN    198.51.100.0/24            # P-01 directory services, lab segment
+53,88,137,138,389,464/udp on enp26s0 ALLOW IN    198.51.100.0/24            # P-01 directory services, lab segment
+```
+
+`enp2s0` is the home-network interface and `enp26s0` the lab-segment interface (§4.1).
+
+**Anonymous-access setting** on the Samba DC (P-02), read at 19:21 UTC:
+
+```
+$ sudo ls -l --time-style=full-iso /etc/samba/smb.conf /etc/samba/smb.conf.bak-2026-10-12; sudo diff /etc/samba/smb.conf.bak-2026-10-12 /etc/samba/smb.conf; sudo testparm -s --parameter-name="restrict anonymous"; systemctl show samba-ad-dc -p ActiveState -p ActiveEnterTimestamp; date -u
+…
+2a3
+> restrict anonymous = 2
+…
+2
+ActiveState=active
+ActiveEnterTimestamp=Mon 2026-10-12 19:17:25 UTC
+Mon Oct 12 07:21:39 PM UTC 2026
+```
+
+The only difference from the backup is the added line, so no guest option was added; §8.2 found none.
+
+**Scan from the home network** (MacBook Air, all TCP ports, then the six UDP directory ports; 19:33–19:35 UTC; the command line is not recorded):
+
+```
+…
+Not shown: 65534 filtered tcp ports (no-response)
+PORT   STATE SERVICE REASON
+22/tcp open  ssh     syn-ack ttl 64
+…
+```
+
+All six UDP ports returned `open|filtered … no-response`.
+
+**Scan and anonymous requests from the lab segment** (Kali Linux, no username or password; 19:27–19:32 UTC):
+
+```
+$ sudo nmap -Pn -p- -T4 --reason 198.51.100.131; sudo nmap -Pn -sU -p 53,88,137,138,389,464 --reason 198.51.100.131; echo "--- ldapsearch"; ldapsearch -x -H ldap://198.51.100.131 -b "DC=example,DC=test" "(objectClass=user)" sAMAccountName; echo "--- smbclient"; smbclient -L //198.51.100.131 -N; echo "--- rpcclient SMB"; rpcclient -U "" -N 198.51.100.131 -c enumdomusers; echo "--- rpcclient ncacn_ip_tcp"; rpcclient -U "" -N ncacn_ip_tcp:198.51.100.131 -c enumdomusers
+…
+Not shown: 49141 filtered tcp ports (no-response), 16381 closed tcp ports (reset)
+PORT      STATE SERVICE          REASON
+53/tcp    open  domain           syn-ack ttl 64
+88/tcp    open  kerberos-sec     syn-ack ttl 64
+135/tcp   open  msrpc            syn-ack ttl 64
+139/tcp   open  netbios-ssn      syn-ack ttl 64
+389/tcp   open  ldap             syn-ack ttl 64
+445/tcp   open  microsoft-ds     syn-ack ttl 64
+464/tcp   open  kpasswd5         syn-ack ttl 64
+636/tcp   open  ldapssl          syn-ack ttl 64
+3268/tcp  open  globalcatLDAP    syn-ack ttl 64
+3269/tcp  open  globalcatLDAPssl syn-ack ttl 64
+49152/tcp open  unknown          syn-ack ttl 64
+49153/tcp open  unknown          syn-ack ttl 64
+49154/tcp open  unknown          syn-ack ttl 64
+…
+PORT    STATE         SERVICE      REASON
+53/udp  open          domain       udp-response ttl 64
+88/udp  open          kerberos-sec udp-response ttl 64
+137/udp open          netbios-ns   udp-response ttl 64
+138/udp open|filtered netbios-dgm  no-response
+389/udp open          ldap         udp-response ttl 64
+464/udp open|filtered kpasswd5     no-response
+…
+--- ldapsearch
+…
+result: 1 Operations error
+text: 00002020: Operation unavailable without authentication
+…
+--- smbclient
+Anonymous login successful
+tree connect failed: NT_STATUS_ACCESS_DENIED
+--- rpcclient SMB
+Cannot connect to server.  Error was NT_STATUS_ACCESS_DENIED
+--- rpcclient ncacn_ip_tcp
+user:[Administrator] rid:[0x1f4]
+user:[Guest] rid:[0x1f5]
+user:[krbtgt] rid:[0x1f6]
+user:[jsmith] rid:[0x44f]
+user:[agarcia] rid:[0x450]
+user:[mchen] rid:[0x451]
+user:[tjones] rid:[0x454]
+user:[rwhite] rid:[0x455]
+```
+
+SSH no longer answers from the lab segment. The 16,381 closed ports are the allowed dynamic RPC range (49152–65535) less its three open ports (computed); closed ports answer with a reset. The share listing and the account listing over file sharing were refused. Samba's client prints `Anonymous login successful` only after the server accepts an anonymous session ([`clidfs.c`](https://github.com/samba-team/samba/blob/v4-23-stable/source3/libsmb/clidfs.c), source, 4.23 branch, checked October 12, 2026), so the anonymous file-sharing session itself is still accepted. The account listing over `ncacn_ip_tcp` still returns all 8 domain user accounts.
+
+**Firewall log.** The Samba DC's kernel log from 19:26 UTC: entries by action, and the first entries for Kali Linux (hardware addresses redacted):
+
+```
+$ sudo journalctl -k --since "2026-10-12 19:26:00" --no-pager | grep -o "\[UFW [A-Z]*\]" | sort | uniq -c; sudo journalctl -k --since "2026-10-12 19:26:00" --no-pager | grep "UFW" | grep -E "SRC=198.51.100.128|SRC=192.0.2.180" | head -4
+     32 [UFW ALLOW]
+     69 [UFW AUDIT]
+     28 [UFW BLOCK]
+Oct 12 19:27:18 samba-dc kernel: [UFW AUDIT] IN=enp26s0 OUT= MAC=… SRC=198.51.100.128 DST=198.51.100.131 LEN=44 TOS=0x00 PREC=0x00 TTL=56 ID=54494 PROTO=TCP SPT=61586 DPT=443 WINDOW=1024 RES=0x00 SYN URGP=0
+Oct 12 19:27:18 samba-dc kernel: [UFW BLOCK] IN=enp26s0 OUT= MAC=… SRC=198.51.100.128 DST=198.51.100.131 LEN=44 TOS=0x00 PREC=0x00 TTL=56 ID=54494 PROTO=TCP SPT=61586 DPT=443 WINDOW=1024 RES=0x00 SYN URGP=0
+…
+```
+
+**The four other UDP ports.** The September 25 scans also probed UDP 67, 68, 123 and 323; the scans above did not. They were scanned from both segments at 00:17 UTC on October 13 (20:17 EDT, October 12), after P-19 had allowed UDP 123 from Ubuntu Server only ([evidence appendix §16](evidence-appendix.md#16-time-synchronization-on-ubuntu-server)):
+
+```
+Tue Oct 13 00:17:31 UTC 2026
+$ sudo nmap -Pn -sU -p 67,68,123,323 --reason 198.51.100.131   (on Kali)
+…
+PORT    STATE         SERVICE REASON
+67/udp  open|filtered dhcps   no-response
+68/udp  open|filtered dhcpc   no-response
+123/udp open|filtered ntp     no-response
+323/udp open|filtered unknown no-response
+…
+$ sudo nmap -Pn -sU -p 67,68,123,323 --reason 192.0.2.201   (on the MacBook Air)
+…
+PORT    STATE         SERVICE REASON
+67/udp  open|filtered dhcps   no-response
+68/udp  open|filtered dhcpc   no-response
+123/udp open|filtered ntp     no-response
+323/udp open|filtered unknown no-response
+…
+```
+
+None answered from either segment.
+
+**Not done as written.** P-02's listings were run from the lab segment only. The home-network TCP scan (19:33–19:35 UTC) got no reply on the file-sharing (139, 445) or RPC (135) ports, so no listing was run there. P-01's task 4 (the update and time services) is carried by P-13, P-15 and P-19, each of which allows its own service when it is set up; P-19 did so on October 12, 2026 ([evidence appendix §16](evidence-appendix.md#16-time-synchronization-on-ubuntu-server)).
+
+**Result.** P-01: passed. P-02: passed for the share and account listings over file sharing. Both are the system owner's determinations, October 12, 2026. The anonymous file-sharing session and the account listing over `ncacn_ip_tcp` are recorded as Finding 14 (system security plan §11) and plan of action and milestones entry P-29. Entry and finding status: plan of action and milestones P-01, P-02 and P-29, and system security plan §11.
+
+### 13.2 Finding 7 and P-05 — Ubuntu Server
+
+**What was re-tested.** §9.2 left the cached-logon path untested: exercising it would require a cached credential and winbind's offline flag set. P-05 turns cached logons off (`winbind offline logon = no`). Its re-test: *"The setting reads `No`. With the Samba DC shut down, a domain logon on Ubuntu Server fails. With it running, the assessment plan §5 lockout test through Ubuntu Server is repeated, and the account locks at the fifth attempt."*
+
+**Attempt before P-05: the offline flag had cleared.** On Ubuntu Server at 19:53:56 UTC winbind reported the domain offline (`EXAMPLE : no active connection`), the state §9.2 calls the offline flag; at 19:57:03, just before the first attempt, it had cleared. The account's counters on the Samba DC read `badPwdCount: 0` and `lockoutTime: 0` at 19:56:08 UTC (the same `samba-tool user show` command as below).
+
+```
+$ date -u; wbinfo --online-status EXAMPLE; testparm -s --parameter-name="winbind offline logon" 2>/dev/null; getent passwd rwhite
+Mon Oct 12 07:53:56 PM UTC 2026
+BUILTIN : active connection
+UBUNTU-TARGET : active connection
+EXAMPLE : no active connection
+Yes
+rwhite:*:1001109:1000513::/home/rwhite:/bin/bash
+$ echo "=== state ($(date -u +%T) UTC) ==="; wbinfo --online-status EXAMPLE; for i in 1 2 3 4 5; do echo "=== attempt $i ($(date -u +%T) UTC) ==="; wbinfo -a 'EXAMPLE\rwhite%<wrong password>'; done; echo "=== state after ($(date -u +%T) UTC) ==="; wbinfo --online-status EXAMPLE
+=== state (19:57:03 UTC) ===
+BUILTIN : active connection
+UBUNTU-TARGET : active connection
+EXAMPLE : active connection
+=== attempt 1 (19:57:03 UTC) ===
+plaintext password authentication failed
+Could not authenticate user EXAMPLE\rwhite%<wrong password> with plaintext password
+challenge/response password authentication failed
+Could not authenticate user EXAMPLE\rwhite with challenge/response
+…
+=== state after (19:57:03 UTC) ===
+BUILTIN : active connection
+UBUNTU-TARGET : active connection
+EXAMPLE : active connection
+```
+
+Attempts 2 to 5 returned the same four lines. The account's counters on the Samba DC then read `badPwdCount: 5` with `lockoutTime: 134363086235415760` (19:57:03.5415760 UTC, computed; read at 19:58:16 UTC with the command shown below), and the account was unlocked at 19:58:17 UTC. The five attempts took the online path, as on September 27 (§9.2); the cached-logon path was not exercised.
+
+**P-05 applied** on Ubuntu Server:
+
+```
+$ f=/etc/samba/smb.conf; sudo cp -p $f $f.bak-2026-10-12; grep -n -i "winbind offline logon" $f; if [ "$(grep -c -i '^[[:space:]]*winbind offline logon' $f)" = 1 ]; then sudo sed -i -E 's/^([[:space:]]*winbind offline logon[[:space:]]*=[[:space:]]*).*/\1no/I' $f; grep -n -i "winbind offline logon" $f; testparm -s --parameter-name="winbind offline logon" 2>/dev/null; sudo systemctl restart winbind; sleep 3; systemctl is-active winbind; wbinfo --online-status EXAMPLE; date -u; else echo "STOP: line not found exactly once"; fi
+11:    winbind offline logon = yes
+11:    winbind offline logon = no
+No
+active
+BUILTIN : active connection
+UBUNTU-TARGET : active connection
+EXAMPLE : active connection
+Mon Oct 12 08:09:12 PM UTC 2026
+```
+
+**Lockout, Samba DC running.** The same five wrong-password logons through Ubuntu Server ran at 20:10:15–20:10:16 UTC, each failing as above. The Samba DC's counters immediately after (20:10:29 UTC):
+
+```
+$ sudo samba-tool user show rwhite --attributes=badPwdCount,lockoutTime,badPasswordTime; date -u; sudo samba-tool user unlock rwhite; sudo samba-tool user show rwhite --attributes=badPwdCount,lockoutTime,badPasswordTime; date -u
+dn: CN=Robin,OU=IT,DC=example,DC=test
+badPwdCount: 5
+badPasswordTime: 134363094161129770
+lockoutTime: 134363094161129770
+
+Mon Oct 12 08:10:29 PM UTC 2026
+…
+```
+
+The account locked at the fifth attempt (20:10:16.1129770 UTC, computed) and was then unlocked.
+
+**Domain logon, Samba DC running and stopped.** A temporary password was set for the test account on the Samba DC (output not shown) and replaced with a random one afterwards. With the Samba DC running, the logon succeeded. With its directory service stopped (`sudo systemctl stop samba-ad-dc` at 20:29:34 UTC, after which systemd reported the service state as `failed`), the logon failed:
+
+```
+$ date -u; su - rwhite -c 'id; whoami'; echo "su exit code: $?"
+Mon Oct 12 08:28:26 PM UTC 2026
+Password:
+uid=1001109(rwhite) gid=1000513(domain users) groups=1000513(domain users),1001109(rwhite)
+rwhite
+su exit code: 0
+$ date -u; wbinfo --online-status EXAMPLE; su - rwhite -c 'whoami'; echo "su exit code: $?"
+Mon Oct 12 08:29:46 PM UTC 2026
+BUILTIN : active connection
+UBUNTU-TARGET : active connection
+EXAMPLE : active connection
+Password:
+No logon servers
+su: Authentication failure
+su exit code: 1
+```
+
+The directory service was running again at 20:30:47 UTC. The setting still read `No` at 21:40 UTC ([evidence appendix §16](evidence-appendix.md#16-time-synchronization-on-ubuntu-server)).
+
+**Not done as written.** The re-test calls for the Samba DC to be shut down; only its directory service (`samba-ad-dc`) was stopped, and the machine kept running.
+
+**Result.** Passed (system owner's determination, October 12, 2026). With cached logons turned off, the untested path of Finding 7 no longer exists. Entry and finding status: plan of action and milestones P-05, and system security plan §11.

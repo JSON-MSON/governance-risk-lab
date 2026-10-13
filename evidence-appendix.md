@@ -7,6 +7,7 @@
 ## How the records were produced
 
 - **Command output.** Commands were run on the component named and their output pasted from the terminal into a working record at the time. Long command lines are shown without the terminal's line wrapping. Runs of blank lines are shortened to one, trailing spaces removed and sudo password prompts left out; any other omission is marked `…` or described in brackets.
+- **Recorded sessions (October 12, 2026).** Section 16 and the assessment report §13 use output recorded at the time with `script` or `tee`, with terminal control sequences removed. Where a recording holds only output, the command is given as it was issued, or the record says it was not recorded.
 - **From an earlier working record.** The August 7, 2026 block in section 13 was pasted at the time into an earlier working record and survives only there; no saved output or log holds it. It is labeled where it appears.
 - **Windows client records.** Records were copied from the client on October 1, 2026, the day its retirement was decided. Those used here are its System, Windows Firewall and OpenSSH event logs, its Edge browser history, a Prefetch file, the PC App Store's download-manager file, and two text captures of its state. The copies are not published; each section gives the SHA-256 of the copy it reads. Event logs were read with python-evtx 0.8.1 by `parse_evtx.py`, the browser history with `query_history.py` (both below), and the Prefetch file with libscca-python 20260527. Times are UTC as recorded by the client's clock; event-log times are taken from each record's raw 100-nanosecond timestamp. That clock was not exact: on October 1 it ran about three hours ahead, so later records can carry later dates and times than the actual ones. For July 22, its times agree with the independent clock of the MacBook Air (macOS; hypervisor and administration host). The client displayed local times at UTC−7.
 
@@ -73,7 +74,7 @@ for (url,) in c.execute('SELECT url FROM downloads_url_chains WHERE id = ? ORDER
 
 ## 1. Wazuh agent list and server clocks
 
-Supports the assessment report §1 (both server clocks are set to UTC) and §5.3 (CM-07a: no agent is enrolled), and plan of action and milestones entries P-11 and P-19. Ubuntu Server (SIEM) and Samba DC, September 28, 2026.
+Supports the assessment report §1 (both server clocks are set to UTC; on September 28 Ubuntu Server (SIEM) reported its clock as not synchronized) and §5.3 (CM-07a: no agent is enrolled), and plan of action and milestones entries P-11 and P-19. Ubuntu Server and Samba DC, September 28, 2026.
 
 ```
 labadmin@ubuntu-target:~$ timedatectl; sudo /var/ossec/bin/agent_control -l
@@ -141,11 +142,11 @@ InstalledOn : 5/5/2023 12:00:00 AM
 [Defender, SSH service and Get-Service output, and the closing `Service check done` line, omitted; the Get-Service output is in section 5]
 ```
 
-`Select-Object -First 3` keeps the three most recent entries. The two newest are listed as `Update`; the third, `KB5014032`, is a `Security Update` dated May 5, 2023. The firmware version string is redacted.
+`Select-Object -First 3` keeps the three most recent entries. The two newest are listed as `Update`; the third, `KB5014032`, is a `Security Update` dated May 5, 2023. The firmware version string is redacted. The firmware release date is shown as Windows displayed it, in the client's local time (UTC−7): 5:00 PM on October 6, 2023 is 00:00 UTC on October 7, 2023 (computed).
 
 ## 3. Windows client domain membership
 
-Supports the assessment report §6.1: the consumer Extended Security Updates program excludes devices joined to an Active Directory domain, "which this client is". Windows client, September 28, 2026.
+Supports the assessment report §6.1 (the consumer Extended Security Updates program excludes devices joined to an Active Directory domain, "which this client is") and §12 (the client's computer name). Windows client, September 28, 2026.
 
 ```
 PS C:\Users\winadmin> Get-CimInstance Win32_ComputerSystem | Format-List Name,PartOfDomain,Domain
@@ -200,6 +201,8 @@ Message     : Microsoft Defender Antivirus has encountered an error trying to up
                 Previous Engine Version: <version>
                 Error code: 0x80072ee7
                 Error description: The server name or address could not be resolved
+
+[the other nine events omitted; each is event 2001 with error code `0x80072ee7`]
 ```
 
 ## 5. Remote-management agent on the Windows client
@@ -238,7 +241,7 @@ Action1 Agent LPD (UDP-In)                                                   Inb
 
 ## 6. AnyDesk download record, remaining firewall rules and the store folder
 
-Supports system security plan Finding 11 and the assessment report §6.1. For Finding 11: the download manager records one completed AnyDesk download from AnyDesk's official address, with the same install path as the service; all eight AnyDesk allow rules remain enabled; AnyDesk itself is no longer installed. For §6.1: the store's folder was created July 22, 2026; AnyDesk rules point to program files that are absent or inside the adware's folder; and the remote desktop rule on TCP 33890 remains, with connections denied and the service stopped.
+Supports system security plan Finding 11 and the assessment report §6.1. For Finding 11: the download manager records one completed AnyDesk download from AnyDesk's official address, with the same install path as the service; all eight AnyDesk allow rules were still enabled on October 1, 2026; AnyDesk's program file was absent from its install path. For §6.1: the store's folder was created July 22, 2026; AnyDesk rules pointed to program files that were absent or inside the adware's folder; and the remote desktop rule on TCP 33890 was an enabled inbound allow rule, with connections denied and the service stopped.
 
 The PC App Store's download-manager file, `settings\dl_manager.json`, copied from the client on October 1, 2026 (SHA-256 `9440e8d00a151c4f5303692dad5619f20c0d66912cdaba8e4febbcdc962a03df`), in full:
 
@@ -248,7 +251,7 @@ The PC App Store's download-manager file, `settings\dl_manager.json`, copied fro
 
 `installDate` 1784757726 is 2026-07-22 22:02:06 UTC (computed, Unix time). `filePath` is the path of the `AnyDesk Service` installed at 22:01:59 UTC ([section 12](#12-adware-delivery-installer-runs-service-installs-and-firewall-rules)), written with the `%PROGRAMFILES(X86)%` variable.
 
-The AnyDesk rows among the client's enabled firewall rules on October 1, 2026 (`state-at-retirement.txt`, lines 2153–2154 and 2162–2169, SHA-256 `949129d4ec0da0fcfa58b7609d13e95ad855a65022ac622734d014e315ac482c`):
+The AnyDesk and remote desktop rows among the client's enabled firewall rules on October 1, 2026 (`state-at-retirement.txt`, lines 2153–2154, 2162–2169 and 2260, SHA-256 `949129d4ec0da0fcfa58b7609d13e95ad855a65022ac622734d014e315ac482c`):
 
 ```
 DisplayName                                                                Direction Action                 Profile
@@ -262,6 +265,8 @@ AnyDesk                                                                      Inb
 AnyDesk                                                                      Inbound  Allow                  Domain
 AnyDesk                                                                      Inbound  Allow                 Private
 AnyDesk                                                                      Inbound  Allow                 Private
+[lines 2170–2259 omitted]
+RDP-CustomPort                                                               Inbound  Allow                     Any
 ```
 
 September 25, 2026, PowerShell, three pastes in the order run (18:16, 18:18 and 18:22 EDT); from the second and third, only the commands cited are shown. The first line of the second paste lost its leading `P` in copying and is restored here. The folder's creation time is the client's local time.
@@ -647,7 +652,7 @@ EventRecordID | EventID | TimeCreated (UTC, 100-ns) | RuleId | RuleName | Applic
 1094 | 2097 | 2026-07-22T22:02:05.6236582Z | {0F07270E-D25A-4C48-B1DF-75EA2C8623E7} | AnyDesk | C:\Program Files (x86)\AnyDesk\AnyDesk.exe | 1 | 3 | 17 | 1 | S-1-5-18 | C:\Program Files (x86)\AnyDesk\AnyDesk.exe
 ```
 
-Each 2097 record carries a new rule's settings. Each 2006 record names, by its `RuleId`, a rule added a moment earlier but carries none of its settings; Microsoft does not document these event IDs, but the count that follows matches the client's rule listing of October 1, 2026. At 21:49:33 the store's downloaded `Anydesk.exe` (`ModifyingApplication`) added six rules under the client's administrator account (RID 1001), and two of their IDs then appear in 2006 records, leaving four whose program is that file. The AnyDesk service was installed 12 minutes 26.7 seconds after those first rules; at 22:02:05, 5.1 seconds after it, the same pattern left four more for the installed AnyDesk, created by `S-1-5-18` (SYSTEM) (intervals computed). Direction 1 is inbound ([`FW_DIRECTION`](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fasp/34806362-c31f-4531-ad8c-5a43d5870223)) and action 3 is allow ([`FW_RULE_ACTION`](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fasp/702e3c23-c9d8-43db-8380-b4c670dd7f7d)); protocol 6 is TCP and 17 is UDP; profile 1 is Domain and 2 is Private ([`NET_FW_PROFILE_TYPE2`](https://learn.microsoft.com/en-us/windows/win32/api/icftypes/ne-icftypes-net_fw_profile_type2)). The eight rules left are the eight AnyDesk rules enabled on October 1, 2026, four Private and four Domain ([section 6](#6-anydesk-download-record-remaining-firewall-rules-and-the-store-folder)).
+Each 2097 record carries a new rule's settings. Each 2006 record names, by its `RuleId`, a rule added a moment earlier but carries none of its settings. Microsoft's archived page for event 2006 on Windows Server 2008 R2 gives its message as *"A rule has been deleted in the Windows Firewall exception list."* ([Event ID 2006](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-r2-and-2008/dd364381(v=ws.10)), checked October 12, 2026). The count that follows matches the client's rule listing of October 1, 2026. At 21:49:33 the store's downloaded `Anydesk.exe` (`ModifyingApplication`) added six rules under the client's administrator account (RID 1001), and two of their IDs then appear in 2006 records, leaving four whose program is that file. The AnyDesk service was installed 12 minutes 26.7 seconds after those first rules; at 22:02:05, 5.1 seconds after it, the same pattern left four more for the installed AnyDesk, created by `S-1-5-18` (SYSTEM) (intervals computed). Direction 1 is inbound ([`FW_DIRECTION`](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fasp/34806362-c31f-4531-ad8c-5a43d5870223)) and action 3 is allow ([`FW_RULE_ACTION`](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fasp/702e3c23-c9d8-43db-8380-b4c670dd7f7d)); protocol 6 is TCP and 17 is UDP; profile 1 is Domain and 2 is Private ([`NET_FW_PROFILE_TYPE2`](https://learn.microsoft.com/en-us/windows/win32/api/icftypes/ne-icftypes-net_fw_profile_type2)). The eight rules left are the eight AnyDesk rules enabled on October 1, 2026, four Private and four Domain ([section 6](#6-anydesk-download-record-remaining-firewall-rules-and-the-store-folder)).
 
 ## 13. The August 7 disconnect and the September 25 default route
 
@@ -750,10 +755,11 @@ StartName   : LocalSystem
 PathName    : C:\Windows\system32\AppleOSSMgr.exe
 ```
 
-An autostart registry entry (October 1, 2026; `adware-investigation.txt`, lines 101 and 104–105, SHA-256 `24d1dabbcbe1fc33dc0271ff6e93cdb978b8093d0fa7a23b4781bc1ffaf74b9f`):
+Autostart registry entries (October 1, 2026; `adware-investigation.txt`, lines 101–105, SHA-256 `24d1dabbcbe1fc33dc0271ff6e93cdb978b8093d0fa7a23b4781bc1ffaf74b9f`):
 
 ```
 [HKLM:\Software\Microsoft\Windows\CurrentVersion\Run]
+
 SecurityHealth : C:\Windows\system32\SecurityHealthSystray.exe
 Apple_KbdMgr   : C:\Program Files\Boot Camp\Bootcamp.exe
 ```
@@ -812,3 +818,160 @@ EventRecordID | EventID | TimeCreated (UTC, 100-ns) | payload
 ```
 
 All 18 accepted logins are password logins to the client's administrator account from 192.0.2.180, the MacBook Air's home-network address. The log's oldest record is from August 12, 2026, 19:23 UTC; earlier logins are not in it. In EDT (UTC−4), the logins dated 2026-09-26 00:14–01:35 UTC fall on the evening of September 25, the session the assessment report cites. The client's clock was not exact; if the true times were earlier, they still fall on that evening.
+
+## 16. Time synchronization on Ubuntu Server
+
+Supports plan of action and milestones entry P-19, system security plan §8 (the Samba DC's time source) and §10.3 (time synchronization), and the assessment report §13.2 (the cached-logon setting at 21:40). Ubuntu Server and Samba DC, October 12, 2026, UTC.
+
+Before the change, Ubuntu Server:
+
+```
+labadmin@ubuntu-target:~$ date -u; timedatectl; chronyc sources; grep -v -E '^\s*(#|$)' /etc/chrony/chrony.conf; ls /etc/chrony/conf.d /etc/chrony/sources.d
+Mon Oct 12 08:38:37 PM UTC 2026
+               Local time: Mon 2026-10-12 20:38:37 UTC
+           Universal time: Mon 2026-10-12 20:38:37 UTC
+                 RTC time: Mon 2026-10-12 20:38:38
+                Time zone: Etc/UTC (UTC, +0000)
+System clock synchronized: yes
+              NTP service: active
+          RTC in local TZ: no
+MS Name/IP address         Stratum Poll Reach LastRx Last sample
+===============================================================================
+[no source rows; the chrony.conf lines that follow are omitted]
+/etc/chrony/conf.d:
+README  ubuntu-nts.conf
+
+/etc/chrony/sources.d:
+README  ubuntu-ntp-pools.sources
+labadmin@ubuntu-target:~$ date -u; chronyc tracking; systemctl is-active chrony systemd-timesyncd open-vm-tools 2>&1; vmware-toolbox-cmd timesync status 2>&1; timedatectl show -p NTPSynchronized -p NTP
+Mon Oct 12 08:39:56 PM UTC 2026
+Reference ID    : 00000000 ()
+Stratum         : 0
+…
+Leap status     : Not synchronised
+active
+inactive
+active
+Enabled
+NTP=yes
+NTPSynchronized=yes
+```
+
+chrony listed no source, and its tracking read `Not synchronised`; VMware Tools periodic time synchronization was `Enabled`. The `NTPSynchronized=yes` flag did not reflect chrony's state here, so it is not used as evidence below.
+
+Before the change, the Samba DC (its `chrony.conf` had no `allow` line):
+
+```
+dcadmin@samba-dc:~$ date -u; chronyc tracking | head -6; chronyc sources; grep -v -E '^\s*(#|$)' /etc/chrony/chrony.conf; ls /etc/chrony/conf.d /etc/chrony/sources.d
+Mon Oct 12 08:38:29 PM UTC 2026
+…
+sourcedir /run/chrony-dhcp
+sourcedir /etc/chrony/sources.d
+keyfile /etc/chrony/chrony.keys
+driftfile /var/lib/chrony/chrony.drift
+ntsdumpdir /var/lib/chrony
+logdir /var/log/chrony
+maxupdateskew 100.0
+rtcsync
+makestep 1 3
+leapseclist /usr/share/zoneinfo/leap-seconds.list
+confdir /etc/chrony/conf.d
+/etc/chrony/conf.d:
+README  ubuntu-nts.conf
+
+/etc/chrony/sources.d:
+README  ubuntu-ntp-pools.sources
+```
+
+The change on the Samba DC, so that it serves time to Ubuntu Server only and its host firewall admits that traffic:
+
+```
+dcadmin@samba-dc:~$ echo "allow 198.51.100.130" | sudo tee /etc/chrony/conf.d/hl01-serve-ubuntu-server.conf; sudo ufw allow in on enp26s0 proto udp from 198.51.100.130 to any port 123 comment "P-19 time for Ubuntu Server"; sudo systemctl restart chrony; sleep 3; systemctl is-active chrony; sudo ss -ulnp | grep ':123 '; sudo ufw status | grep 123; date -u
+allow 198.51.100.130
+Rule added
+active
+UNCONN 0      0                     0.0.0.0:123       0.0.0.0:*    users:(("chronyd",pid=31148,fd=6))
+123/udp on enp26s0         ALLOW       198.51.100.130             # P-19 time for Ubuntu Server
+Mon Oct 12 08:45:33 PM UTC 2026
+```
+
+The change on Ubuntu Server was made in two steps. First, at 20:48, the NTS configuration file was renamed, the Samba DC set as a source, and VMware Tools periodic time synchronization turned off:
+
+```
+labadmin@ubuntu-target:~$ sudo mv /etc/chrony/conf.d/ubuntu-nts.conf /etc/chrony/conf.d/ubuntu-nts.conf.disabled-2026-10-12; echo "server 198.51.100.131 iburst" | sudo tee /etc/chrony/conf.d/hl01-samba-dc.conf; sudo systemctl restart chrony; sudo vmware-toolbox-cmd timesync disable; vmware-toolbox-cmd timesync status; sleep 30; chronyc sources; chronyc tracking | head -6; timedatectl show -p NTPSynchronized; date -u
+server 198.51.100.131 iburst
+Disabled
+Disabled
+…
+```
+
+chrony still added the Ubuntu NTP pools and did not select the Samba DC (journal read at 21:06):
+
+```
+labadmin@ubuntu-target:~$ sudo journalctl -u chrony --since "2026-10-12 20:47:00" --no-pager | tail -20; chronyc sources; sudo chronyc selectdata; chronyc tracking | head -6; date -u
+…
+Oct 12 20:48:12 ubuntu-target chronyd[5552]: Added pool 1.ntp.ubuntu.com
+Oct 12 20:48:12 ubuntu-target chronyd[5552]: Added pool 2.ntp.ubuntu.com
+Oct 12 20:48:12 ubuntu-target chronyd[5552]: Added pool 3.ntp.ubuntu.com
+Oct 12 20:48:12 ubuntu-target chronyd[5552]: Added pool 4.ntp.ubuntu.com
+Oct 12 20:48:12 ubuntu-target chronyd[5552]: Added pool ntp-bootstrap.ubuntu.com
+Oct 12 20:52:37 ubuntu-target chronyd[5552]: Can't synchronise: no required source in selectable sources
+…
+```
+
+The pools are defined in `sources.d/ubuntu-ntp-pools.sources`, the only file under `/etc` that a search at 21:14 found naming `ntp-bootstrap` (the search output also lists files outside `/etc`; it is not shown). At 21:15 that file was renamed too:
+
+```
+labadmin@ubuntu-target:~$ sudo mv /etc/chrony/sources.d/ubuntu-ntp-pools.sources /etc/chrony/sources.d/ubuntu-ntp-pools.sources.disabled-2026-10-12; sudo systemctl restart chrony; sleep 40; sudo journalctl -u chrony --since "-1min" --no-pager; chronyc sources -a; sudo chronyc selectdata; chronyc tracking | head -6; timedatectl show -p NTPSynchronized; date -u
+…
+Oct 12 21:15:14 ubuntu-target systemd[1]: Started chrony.service - chrony, an NTP client/server.
+Oct 12 21:15:18 ubuntu-target chronyd[6117]: Selected source 198.51.100.131
+Oct 12 21:15:18 ubuntu-target chronyd[6117]: System clock TAI offset set to 37 seconds
+MS Name/IP address         Stratum Poll Reach LastRx Last sample
+===============================================================================
+^* 198.51.100.131                3   6    17    34  +4218ns[+1031us] +/-   53ms
+…
+Mon Oct 12 09:15:54 PM UTC 2026
+```
+
+Re-check at 21:40 UTC, from the MacBook Air (Ubuntu Server first, then the Samba DC):
+
+```
+ssh -t labadmin@198.51.100.130 'date -u; testparm -s --parameter-name="winbind offline logon" 2>/dev/null; vmware-toolbox-cmd timesync status; ls /etc/chrony/conf.d /etc/chrony/sources.d; chronyc sources; chronyc tracking; timedatectl show -p NTPSynchronized; sudo journalctl -u chrony --since "2026-10-12 21:15:00" --no-pager'
+ssh -t dcadmin@192.0.2.201 'date -u; sudo ufw status verbose; sudo testparm -s --parameter-name="restrict anonymous" 2>/dev/null; chronyc tracking | head -4; sudo chronyc clients'
+```
+
+```
+Mon Oct 12 09:40:22 PM UTC 2026
+No
+Disabled
+/etc/chrony/conf.d:
+README	hl01-samba-dc.conf  ubuntu-nts.conf.disabled-2026-10-12
+
+/etc/chrony/sources.d:
+README	ubuntu-ntp-pools.sources.disabled-2026-10-12
+MS Name/IP address         Stratum Poll Reach LastRx Last sample
+===============================================================================
+^* 198.51.100.131                3   6   377    16  +1888us[  +18ms] +/-   55ms
+Reference ID    : <id> (198.51.100.131)
+…
+Leap status     : Normal
+NTPSynchronized=yes
+…
+Oct 12 21:15:18 ubuntu-target chronyd[6117]: Selected source 198.51.100.131
+Oct 12 21:15:18 ubuntu-target chronyd[6117]: System clock TAI offset set to 37 seconds
+Connection to 198.51.100.130 closed.
+Mon Oct 12 09:40:31 PM UTC 2026
+…
+123/udp on enp26s0         ALLOW IN    198.51.100.130             # P-19 time for Ubuntu Server
+…
+Reference ID    : 5BBD5B70 (ntp-nts-2.ps6.canonical.com)
+…
+Hostname                      NTP   Drop Int IntL Last     Cmd   Drop Int  Last
+===============================================================================
+198.51.100.130                 59      0   6   -    29       0      0   -     -
+localhost                       0      0   -   -     -       1      0   -     0
+Connection to 192.0.2.201 closed.
+```
+
+`No` is Ubuntu Server's `winbind offline logon` setting and `Disabled` its VMware Tools periodic time synchronization. `^*` marks the source chrony is using: at 21:15 and at 21:40 it was the Samba DC, and at 21:40 tracking read `Normal` (at 20:39 it read `Not synchronised`). At 21:40 the journal held no chrony entry after 21:15:18. The Samba DC takes its own time from a public Canonical time server and listed Ubuntu Server as a client at 21:40, with 59 time requests.
