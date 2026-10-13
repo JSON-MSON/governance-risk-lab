@@ -1,6 +1,6 @@
 # Plan of Action and Milestones — Cybersecurity Home Lab (HL-01)
 
-> **At a glance.** This is the lab's hardening plan. The [security assessment](security-assessment-report.md) of nine controls produced 174 results of 73 determination statements, each rated per component: 73 satisfied and 101 other than satisfied. Every other-than-satisfied result maps to at least one of the 29 entries below (traceability, §6). The entries cover the findings in the [system security plan](system-security-plan.md) (§11 gives each one's status), the deficiencies that carry no finding, and three items the system owner raised in review rather than from a determination statement. Each entry names the fix, how it will be re-tested, and when; the reassessment result will be added to the assessment report (or, for the three owner-raised items, the system security plan); an entry superseded by another closes with the superseding entry's re-test. The Windows client has been retired without remediation, and its retirement was verified on October 10, 2026: P-17 and the six entries it superseded are closed. Retirement is risk avoidance, the system owner's proposed risk response, pending Authorizing Official review. On October 12, 2026, P-01, P-02 (for the share and account listings over file sharing), P-05 and P-19 passed their re-tests and closed; the P-02 re-test raised Finding 14, carried by the new entry P-29. Three residual gaps are proposed for risk acceptance, pending Authorizing Official review. The target date for all open entries is October 18, 2026.
+> **At a glance.** This is the lab's hardening plan. The [security assessment](security-assessment-report.md) of nine controls produced 174 results of 73 determination statements, each rated per component: 73 satisfied and 101 other than satisfied. Every other-than-satisfied result maps to at least one of the 29 entries below (traceability, §6). The entries cover the findings in the [system security plan](system-security-plan.md) (§11 gives each one's status), the deficiencies that carry no finding, and three items the system owner raised in review rather than from a determination statement. Each entry names the fix and how it will be re-tested; an entry superseded by another closes with the superseding entry's re-test. The Windows client has been retired without remediation, and its retirement was verified on October 10, 2026: P-17 and the six entries it superseded are closed. The system owner proposes retirement as risk avoidance, pending Authorizing Official review. On October 12, 2026, P-01, P-02 (for the share and account listings over file sharing), P-05 and P-19 passed their re-tests and closed; the P-02 re-test raised Finding 14, carried by P-29. On October 13, 2026, P-29 passed its re-test from Kali Linux; it stays open for the account listing over the network RPC transport, still reachable from Ubuntu Server; task 4 applies a Samba setting if a release adds one. Three residual gaps are proposed for risk acceptance, pending Authorizing Official review. The target date for all open entries is October 18, 2026.
 
 ---
 
@@ -18,7 +18,7 @@
 - *Resources:* the system owner's time; no cost.
 - *Recommended completion:* before authorization.
 - *Status at issue:* open unless the entry states otherwise; status and date changes are recorded in the change record (§7).
-- *Re-test:* each fix is re-tested with the method the entry names; an entry superseded by another closes with the superseding entry's re-test. The reassessment result is added to the assessment report and the original result is kept, as SP 800-37 Rev 2 Task A-5 provides: *"The assessors update the assessment reports with the findings from the reassessment, but do not change the original assessment results."* For P-19, P-27 and P-28, which trace to no assessed statement, the result is recorded in the system security plan. A change record is added to the system security plan.
+- *Re-test:* each fix is re-tested with the method the entry names. The reassessment result is added to the assessment report and the original result is kept, as SP 800-37 Rev 2 Task A-5 provides: *"The assessors update the assessment reports with the findings from the reassessment, but do not change the original assessment results."* For P-19, P-27 and P-28, which trace to no assessed statement, the result is recorded in the system security plan. Each re-test is also recorded in the system security plan's change record.
 
 **Schedule.** Target date for all open entries: **October 18, 2026**. An entry closes when its re-test passes, or, if superseded, when the superseding entry's re-test passes; a change to the target date is recorded in the change record (§7).
 
@@ -58,9 +58,9 @@
 | P-27 | Inbound reachability from the internet not examined | Home gateway | SC-7 | System owner review |
 | P-28 | Ubuntu Server isolation has no recorded risk acceptance | Ubuntu Server | SI-2 | System owner review |
 
----
+For entries from a finding, the Controls column lists the finding's candidate controls (system security plan §11); §6 maps each other-than-satisfied result to its entries. Entries are listed in section order (§3–§5), so P-29 follows P-10. P-03, P-07, P-08, P-16, P-18 and P-26 are superseded by P-17, which retires the Windows client; each is kept below under its status line.
 
-For entries from a finding, the Controls column lists the finding's candidate controls (system security plan §11); §6 maps each other-than-satisfied result to its entries. P-03, P-07, P-08, P-16, P-18 and P-26 are superseded by P-17, which retires the Windows client; each is kept below under its status line.
+---
 
 ## 3. Entries — Configuration Changes
 
@@ -71,7 +71,7 @@ For entries from a finding, the Controls column lists the finding's candidate co
 | Status | Closed October 12, 2026: re-test passed (report §13.1). |
 | Statements | CM-07b.[02]–[03]; SC-07a.[01], [03]; SC-07a.[02], [04]; SC-07c — Samba DC |
 | Evidence | The host firewall was inactive and the packet filter accepted everything; every directory service and SSH answered from the lab segment and from the home network (report §5.2). |
-| Tasks | 1. Add the SSH allow rule for the home-network address of the MacBook Air (macOS; hypervisor and administration host) before enabling the firewall; the `ufw` manual warns that enabling it may drop existing connections such as SSH. 2. Default deny inbound. 3. Allow the directory service ports the host listens on (TCP 53, 88, 135, 139, 389, 445, 464, 636, 3268, 3269 and the dynamic RPC range 49152–65535; UDP 53, 88, 137, 138, 389, 464) from the lab segment only, the approved value (assessment plan §4). 4. Carried by P-13, P-15 and P-19, each of which allows its own service in the Samba DC's firewall from Ubuntu Server only when that service is set up (done for P-19). 5. Set firewall logging to `medium`, which adds new connections, allowed packets not matching the policy, and invalid packets to the firewall log (still rate-limited). 6. Enable the firewall. |
+| Tasks | 1. Add the SSH allow rule for the home-network address of the MacBook Air (macOS; hypervisor and administration host) before enabling the firewall; the `ufw` manual warns that enabling it may drop existing connections such as SSH. 2. Default deny inbound. 3. Allow the directory service ports the host listens on (TCP 53, 88, 135, 139, 389, 445, 464, 636, 3268, 3269 and the dynamic RPC range 49152–65535; UDP 53, 88, 137, 138, 389, 464) from the lab segment only, the value approved on October 10, 2026 (assessment plan §7). 4. Carried by P-13, P-15 and P-19, each of which allows its own service in the Samba DC's firewall from Ubuntu Server only when that service is set up (done for P-19). 5. Set firewall logging to `medium`, which adds new connections, allowed packets not matching the policy, and invalid packets to the firewall log (still rate-limited). 6. Enable the firewall. |
 | Re-test | Repeat the assessment plan §5 scans. From the MacBook Air on the home network, only SSH answers. From Kali Linux (attack simulation) on the lab segment, only the directory ports answer. The log records connections. |
 | Dependency | Remediated together with P-02 (system owner decision, September 26, 2026). P-11, P-13, P-15 and P-19 depend on this entry. |
 
@@ -101,7 +101,7 @@ For entries from a finding, the Controls column lists the finding's candidate co
 | | |
 |---|---|
 | Statements | AC-03 — Ubuntu Server (file modes; the policy part is P-23) |
-| Evidence | Three files derived from packet captures, one holding a captured test credential, are world-readable, while the captures are owner-only (report §8.1). |
+| Evidence | Three files derived from packet captures, one holding a captured test credential, are world-readable, while the two captures are owner-only (report §8.1). |
 | Tasks | Set the three files to owner read and write only (mode 600), matching the captures. |
 | Re-test | The listing shows `-rw-------` on all five files. The unprivileged read, which the home folder already blocked, is repeated and still fails. |
 
@@ -169,9 +169,10 @@ For entries from a finding, the Controls column lists the finding's candidate co
 
 | | |
 |---|---|
+| Status | Open: tasks 1–3 completed and re-test passed from Kali Linux, October 13, 2026 (system owner's determination; report §14). The Samba DC requires encrypted file sharing and admits the RPC ports from Ubuntu Server only. Kept open by the system owner for the account listing over `ncacn_ip_tcp`, still reachable from Ubuntu Server, where it was not run (`rpcclient` is not installed); task 4 is tracked instead of a proposal for acceptance. |
 | Statements | AC-03 — Samba DC; AC-14 (not yet assessed) |
-| Evidence | After P-02, from Kali Linux on the lab segment with no credentials: the Samba DC accepts an anonymous file-sharing session, although the share listing and the account listing over file sharing are refused; the account listing over the network RPC transport (`ncacn_ip_tcp`) returns all 8 domain user accounts (report §13.1). |
-| Tasks | 1. Research how the Samba DC can refuse the anonymous account listing over `ncacn_ip_tcp` and the anonymous file-sharing session, and record each method with its source. 2. Apply them. 3. Update the AC-14 record in the system security plan §10.3. |
+| Evidence | After P-02, from Kali Linux on the lab segment with no credentials: the Samba DC accepted an anonymous file-sharing session, although the share listing and the account listing over file sharing were refused; the account listing over the network RPC transport (`ncacn_ip_tcp`) returned all 8 domain user accounts (report §13.1). |
+| Tasks | 1. Research how the Samba DC can refuse the anonymous account listing over `ncacn_ip_tcp` and the anonymous file-sharing session, and record each method with its source. 2. Apply them. 3. Update the AC-14 record in the system security plan §10.3. 4. If a Samba release adds a setting that refuses anonymous requesters on the account listing over `ncacn_ip_tcp` (proposed in [Samba bug 12775](https://bugzilla.samba.org/show_bug.cgi?id=12775)), apply it, then repeat the re-test, including from Ubuntu Server (system owner decision, October 13, 2026). |
 | Re-test | From the lab segment, with no credentials, repeat the share listing, the account listing over the file-sharing transport and the account listing over `ncacn_ip_tcp`: the anonymous file-sharing session is refused and no account is listed. |
 
 ---
@@ -194,7 +195,7 @@ For entries from a finding, the Controls column lists the finding's candidate co
 |---|---|
 | Statements | CM-07a (agent ports) — Ubuntu Server |
 | Evidence | Agent ports 1514 and 1515 and the API on 55000 listen on all interfaces; only the host firewall keeps them unreachable (report §5.1). |
-| Tasks | 1. Confirm the dashboard reaches the Wazuh API over the loopback address. Then set the API's `host` value to the loopback address only, and restart the manager. 2. Allow 1514 and 1515 in the host firewall from the Samba DC's lab-segment address only, for P-11. Ubuntu Server's approved inbound set in the assessment plan §4 is to be amended to include them when this entry is remediated. |
+| Tasks | 1. Confirm the dashboard reaches the Wazuh API over the loopback address. Then set the API's `host` value to the loopback address only, and restart the manager. 2. Allow 1514 and 1515 in the host firewall from the Samba DC's lab-segment address only, for P-11. The assessment plan §4 inbound value is to be amended to include them when this entry is remediated. |
 | Re-test | Listening sockets show the API on loopback only. A full TCP scan from Kali Linux still shows 1514, 1515 and 55000 filtered, as at assessment. |
 
 ### P-13 — Ubuntu Server security updates overdue; vulnerability data not updating
@@ -202,7 +203,7 @@ For entries from a finding, the Controls column lists the finding's candidate co
 | | |
 |---|---|
 | Statements | SI-02a.[01]–[03]; SI-02c.[01] — Ubuntu Server |
-| Evidence | 11 security fixes are not installed at least 51 days after release, against a 30-day limit. The vulnerability module's data updates failed: 25 failures were logged from September 13 to the assessment, and no success appeared in the entries read (report §3.1, §3.2). |
+| Evidence | When assessed, 11 security fixes had not been installed at least 51 days after release, against a 30-day limit. The vulnerability module's data updates failed: 25 failures were logged from September 13 to the assessment, and no success appeared in the entries read (report §3.1, §3.2). |
 | Tasks | 1. Run a package caching proxy (`apt-cacher-ng`) on the Samba DC, reachable from Ubuntu Server only, and point Ubuntu Server's package manager at it (`Acquire::http::Proxy`). Confirm each package source's scheme; for any `https://` source, such as the Wazuh repository, configure the proxy to pass it through or remap it. 2. Install the pending security updates in the first maintenance window (P-14). 3. On the Samba DC, download the current Wazuh vulnerability-data snapshot and serve it to Ubuntu Server. Set the manager's `offline-url` to it, which Wazuh documents for servers without internet access. 4. In the Samba DC's host firewall, allow the proxy and the snapshot from Ubuntu Server only (from P-01 task 4). The approved inbound set in the assessment plan §4 is to be amended to include them when this entry is remediated. |
 | Re-test | No security update is pending; the manager log records a successful vulnerability-data update; the dashboard lists vulnerabilities. |
 | Dependency | After P-01. |
@@ -232,7 +233,7 @@ For entries from a finding, the Controls column lists the finding's candidate co
 |---|---|
 | Status | Closed October 10, 2026: superseded by P-17 (October 1, 2026); the Windows client's retirement was verified (report §12). |
 | Statements | SI-03a.[01] (signature part); SI-03b — Windows client |
-| Evidence | Signatures were dated August 6, 2026. Defender's log recorded its last successful update on August 7 and only failed attempts after that, most often on name resolution, which was disabled (report §6.1). `SignatureScheduleDay` was at Microsoft's default (8), and `SignatureUpdateInterval` read 0; with 8, Microsoft documents that Defender checks for definition updates at a default frequency (report §6.1). |
+| Evidence | Signatures were dated August 6, 2026. Defender's log recorded its last successful update on August 7 and only failed attempts after that, most often on name resolution, which was disabled. `SignatureScheduleDay` was at Microsoft's default (8), and `SignatureUpdateInterval` read 0; with 8, Microsoft documents that Defender checks for definition updates at a default frequency (report §6.1). |
 | Tasks | After P-07 restores name resolution, set an explicit daily signature check (`Set-MpPreference -SignatureScheduleDay 0`). |
 | Re-test | The signature date is within the past day, and the Defender log records a successful update that ran on its own schedule. |
 | Dependency | After P-07. |
@@ -300,7 +301,7 @@ For entries from a finding, the Controls column lists the finding's candidate co
 |---|---|
 | Statements | SC-07c — both servers |
 | Evidence | No security architecture document exists (report §5.4). |
-| Tasks | Write a security architecture document: the segments, each boundary device and its rules, the permitted flows after P-01, P-09 and P-12, and the update and time services on the Samba DC. |
+| Tasks | Write a security architecture document: the segments, each boundary device and its rules, the permitted flows after P-01, P-09, P-12 and P-29, and the update and time services on the Samba DC. |
 | Re-test | SC-07c is re-assessed. |
 
 ### P-23 — No access control policy or list of approved authorizations
@@ -340,13 +341,13 @@ For entries from a finding, the Controls column lists the finding's candidate co
 | Evidence | No scanner or SIEM agent covered the client, and nothing alerted the system owner beyond the device itself (report §6.2). The client and Ubuntu Server shared no route (report §3.1, §6.1). |
 | Tasks | Review Defender's detection events (IDs 1116 and 1117 in its operational log) weekly until retirement. |
 | Re-test | The weekly review is recorded. |
-| Proposed for acceptance | No flaw scanning, no automated alert, and no interface monitoring beyond the firewall log, until retirement (pending Authorizing Official review). The system owner's earlier decision not to extend SIEM monitoring to this client stands. |
+| Proposed for acceptance (withdrawn) | No flaw scanning, no automated alert, and no interface monitoring beyond the firewall log, until retirement (pending Authorizing Official review). The system owner's earlier decision not to extend SIEM monitoring to this client stands. |
 
 ### P-27 — Inbound reachability from the internet not examined
 
 | | |
 |---|---|
-| Source | System owner review (system security plan §8). |
+| Source | System owner review. |
 | Evidence | Outbound paths to the internet exist through the home gateway; inbound reachability was not examined (system security plan §8). |
 | Tasks | Examine the home gateway's port forwarding, DMZ host and UPnP settings, and record them. Remove any forwarding or DMZ entry that points at a boundary component, and turn off UPnP unless something requires it. |
 | Re-test | The settings are re-read and recorded; the system security plan §8 states the result. |
@@ -365,7 +366,7 @@ For entries from a finding, the Controls column lists the finding's candidate co
 
 ## 6. Traceability — Every Other-Than-Satisfied Result
 
-All 101 other-than-satisfied results from the assessment report, by component. "S" marks a satisfied result; "—" marks a control not assessed on that component. Every other-than-satisfied Windows client result maps to P-17, which retires the client.
+All 101 other-than-satisfied results from the assessment report, by component and by exchange. "S" marks a satisfied result; "—" marks a control not assessed on that component. Every other-than-satisfied Windows client result maps to P-17, which retires the client.
 
 <details>
 <summary>Statement-to-entry map (101 results)</summary>
@@ -429,3 +430,4 @@ Total: 29 + 28 + 29 + 15 = **101**.
 | 2026-10-10 | At a glance, §3 (P-03, P-07, P-08), §4 (P-16, P-17, P-18), §5 (P-26), §7 | P-17's re-test passed on October 10, 2026 (report §12). P-17 closed, and with it the six entries it superseded (P-03, P-07, P-08, P-16, P-18, P-26); P-17 gains a status line, the six entries' status lines now read closed, and P-17's milestones record the re-test. At a glance states that the retirement was verified and these entries are closed, adds that retirement is the system owner's proposed risk response pending Authorizing Official review, no longer counts the open findings, and points to the system security plan §11 for each finding's status. P-06 stays open. No other entry, status or date changed. |
 | 2026-10-12 | At a glance, §1, §2, §3 (P-01, P-02, P-03, P-05, P-06, P-07, P-08), §4 (P-13, P-14, P-16, P-17, P-18), §5 (P-25, P-26), §6, §7 | Wording corrected; no entry added or removed, no status changed, and the target date for open entries is unchanged. At a glance and §1 state that an entry superseded by another closes with the superseding entry's re-test, as the six entries P-17 superseded did on October 10, 2026. At a glance counts 174 results of 73 determination statements, each rated per component, 101 of them other than satisfied; §6's heading, note and summary count results. The note under §2 says that §6 maps each other-than-satisfied result to its entries, and that the superseded entries are kept under their status lines (several were edited after October 1, as this record shows). Evidence lines that are no longer true are in the past tense: P-01, P-02 and P-05 (closed October 12, 2026), P-06, the closed Windows client entries P-03, P-07, P-08, P-16, P-17, P-18 and P-26, and P-13's failure count and P-14's update count, now dated to the assessment. P-17's statements line names the remote-management exchange's CA-3 and SA-9 results that §6 maps to it, and its milestones no longer carry the target date. P-25 states that the Windows client's exchanges ended with its retirement. |
 | 2026-10-12 | At a glance, §2, §3 (P-01, P-02, P-05, P-29), §4 (P-13, P-15, P-19), §5 (P-28), §6, §7 | Re-tests on October 12, 2026 (report §13). P-01 passed and closed; its task 4 (the update and time services) is carried by P-13, P-15 and P-19, each of which has a task to allow its own service in the Samba DC's firewall from Ubuntu Server only and to amend the assessment plan §4 inbound value when that entry is remediated (done for P-19). P-02 passed for the share and account listings over file sharing and closed; its task 2, the AC-14 record, is in the system security plan §10.3. The re-test found that the Samba DC still accepts an anonymous file-sharing session and lists all 8 domain user accounts over the network RPC transport: Finding 14, carried by the new entry P-29 (§2, §3, and §6 under AC-03 for the Samba DC; totals unchanged). P-05 passed and closed; its status line records the system owner's decision that the system security plan records cached logons as turned off, rather than that no cached authenticators exist. P-19 passed and closed: §2 adds SC-45(1) to its controls; its evidence adds the state before the change; its tasks add the firewall rule and turning off VMware Tools periodic time synchronization; its re-test reads the time service's synchronization directly instead of assessing AU-8, naming SC-45(1) as the matching control (in no SP 800-53B baseline). The assessment plan §4 inbound value now includes the time service on the Samba DC, from Ubuntu Server only. P-28 states that P-19's re-test has passed. At a glance counts 29 entries and records these closures. No other entry, status or date changed. |
+| 2026-10-13 | At a glance, §1, §2, §3 (P-01, P-04, P-29), §4 (P-12, P-13, P-16), §5 (P-22, P-26, P-27), §6, §7 | P-29 tasks 1–3 completed on October 13, 2026: the Samba DC requires encrypted file sharing, which refuses the anonymous file-sharing session, and its firewall admits the RPC ports (135, 49152–65535) from Ubuntu Server only (assessment plan §4, approved by the system owner on October 13, 2026); the AC-14 record is updated (system security plan §10.3). The re-test passed from Kali Linux (system owner's determination; report §14). P-29 stays open for the account listing over `ncacn_ip_tcp`, still reachable from Ubuntu Server; it gains a status line and task 4, to apply a Samba setting if a release adds one (system owner decision; no acceptance proposal), and its evidence line is in the past tense. P-01 task 3 cites the inbound value approved on October 10, 2026; P-22 adds P-29 to the permitted flows; P-26's withdrawn proposal is labeled as withdrawn. Wording corrected in At a glance, §1, §2, §6 and P-04, P-12, P-13, P-16 and P-27, with no meaning changed. No other entry, status or date changed. |

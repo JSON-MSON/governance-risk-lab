@@ -13,6 +13,8 @@
 > **Re-test, October 10, 2026.** The Windows client was retired without remediation (plan of action and milestones, P-17), and its retirement re-test passed (§12). The results above stand as assessed.
 >
 > **Re-tests, October 12, 2026.** The Samba DC's host firewall (P-01) and anonymous-access fix (P-02, for the share and account listings over file sharing), and Ubuntu Server's change turning off cached logons (P-05), passed their re-tests. The Samba DC still accepts an anonymous file-sharing session and still lists all 8 domain user accounts over the network RPC transport (Finding 14; §13).
+>
+> **Re-test, October 13, 2026.** The Samba DC now requires encrypted file sharing, which refuses the anonymous file-sharing session, and admits the RPC ports from Ubuntu Server only. From Kali Linux, the anonymous share listing and the account listing over file sharing were refused, and the account listing over the network RPC transport got no answer (P-29, passed from Kali Linux). The account listing over the network RPC transport remains reachable from Ubuntu Server, where it was not tested (Finding 14, still open; §14).
 
 ---
 
@@ -841,9 +843,9 @@ The other-than-satisfied results are carried by Finding 9 (remote-management age
 
 ---
 
-## 12. Re-test — Windows Client Retirement (P-17)
+## 12. Re-test — Windows Client Retirement (P-17, October 10, 2026)
 
-SP 800-37 Rev 2 Task A-5: *"The assessors update the assessment reports with the findings from the reassessment, but do not change the original assessment results."* The determinations in §2–§11 are unchanged. No control or determination statement was reassessed; the Windows client's results in §6 stand as assessed.
+SP 800-37 Rev 2, Task A-5: *"The assessors update the assessment reports with the findings from the reassessment, but do not change the original assessment results."* The determinations in §2–§11 are unchanged. No control or determination statement was reassessed; the Windows client's results in §6 stand as assessed.
 
 **What was re-tested.** The plan of action and milestones entry P-17 retires the Windows client without remediation. Its re-test: *"Retirement is verified: the domain no longer lists the computer account; the Action1 console lists no endpoint (P-06); the client is absent from the network; the certificate of sanitization is on file; the component inventory, boundary and plans record the retirement."*
 
@@ -883,9 +885,9 @@ The eight ports are those open on the client in §6.1.
 
 ---
 
-## 13. Re-tests — Samba DC Firewall and Anonymous Access; Ubuntu Server Cached Logons (October 12, 2026)
+## 13. Re-tests — Samba DC Firewall and Anonymous Access; Ubuntu Server Cached Logons (P-01, P-02, P-05, October 12, 2026)
 
-As in §12, these entries record reassessment results beside the original results (SP 800-37 Rev 2, Task A-5); the determinations in §2–§11 are unchanged, and no determination statement was reassessed. Times are UTC unless marked otherwise; one scan ran at 00:17 UTC on October 13 (20:17 EDT, October 12). Output was recorded at the time with `script` or `tee`; terminal control sequences are removed, and sudo password prompts are left out.
+As in §12, these entries record reassessment results beside the original results (SP 800-37 Rev 2, Task A-5); the determinations in §2–§11 are unchanged, and no determination statement was reassessed. Times are UTC unless marked otherwise. Output was recorded at the time with `script` or `tee`; terminal control sequences are removed, and sudo password prompts are left out.
 
 ### 13.1 P-01 and P-02 — Samba DC
 
@@ -1004,7 +1006,7 @@ Oct 12 19:27:18 samba-dc kernel: [UFW BLOCK] IN=enp26s0 OUT= MAC=… SRC=198.51.
 
 ```
 Tue Oct 13 00:17:31 UTC 2026
-$ sudo nmap -Pn -sU -p 67,68,123,323 --reason 198.51.100.131   (on Kali)
+$ sudo nmap -Pn -sU -p 67,68,123,323 --reason 198.51.100.131   # on Kali Linux
 …
 PORT    STATE         SERVICE REASON
 67/udp  open|filtered dhcps   no-response
@@ -1012,7 +1014,7 @@ PORT    STATE         SERVICE REASON
 123/udp open|filtered ntp     no-response
 323/udp open|filtered unknown no-response
 …
-$ sudo nmap -Pn -sU -p 67,68,123,323 --reason 192.0.2.201   (on the MacBook Air)
+$ sudo nmap -Pn -sU -p 67,68,123,323 --reason 192.0.2.201   # on the MacBook Air
 …
 PORT    STATE         SERVICE REASON
 67/udp  open|filtered dhcps   no-response
@@ -1115,3 +1117,143 @@ The directory service was running again at 20:30:47 UTC. The setting still read 
 **Not done as written.** The re-test calls for the Samba DC to be shut down; only its directory service (`samba-ad-dc`) was stopped, and the machine kept running.
 
 **Result.** Passed (system owner's determination, October 12, 2026). With cached logons turned off, the untested path of Finding 7 no longer exists. Entry and finding status: plan of action and milestones P-05, and system security plan §11.
+
+---
+
+## 14. Re-test — Samba DC Anonymous Access (P-29, October 13, 2026)
+
+As in §12 and §13 (SP 800-37 Rev 2, Task A-5), the determinations in §2–§11 are unchanged and no determination statement was reassessed. Times are UTC. Output was recorded with `tee`, which holds output only; each command is shown as run on the component named, without the SSH command that carried it. Terminal control sequences, sudo password prompts and SSH's closing line are removed.
+
+**What was re-tested.** P-29 carries Finding 14: after P-02, the Samba DC still accepted an anonymous file-sharing session and listed all 8 domain user accounts over the network RPC transport (§13.1). Its re-test: *"From the lab segment, with no credentials, repeat the share listing, the account listing over the file-sharing transport and the account listing over `ncacn_ip_tcp`: the anonymous file-sharing session is refused and no account is listed."*
+
+**Methods found (P-29 task 1).** No Samba setting is made to refuse the anonymous file-sharing session, but requiring encryption refuses it: Samba treats a session with no name as a guest, and refuses guest sessions when encryption is required ([`smb2_sesssetup.c`](https://github.com/samba-team/samba/blob/v4-23-stable/source3/smbd/smb2_sesssetup.c), source, 4.23 branch, checked October 13, 2026). On a Samba domain controller, the account listing over `ncacn_ip_tcp` is answered by a separate account service ([`dcesrv_samr.c`](https://github.com/samba-team/samba/blob/v4-23-stable/source4/rpc_server/samr/dcesrv_samr.c)) that does not read `restrict anonymous`, and no setting refuses only anonymous requesters there, in the 4.23 branch or Samba's development source (checked October 13, 2026); such a setting is proposed in [Samba bug 12775](https://bugzilla.samba.org/show_bug.cgi?id=12775), open since 2017. Without one, the listing cannot be refused to anonymous requesters alone; the fix applied limits which hosts can connect, whether or not they log in.
+
+**Encryption required** (P-29 task 2; Samba DC, 20:24 UTC):
+
+```
+$ date -u; sudo grep -n "server smb encrypt" /etc/samba/smb.conf && { echo "STOP: server smb encrypt already set"; exit 1; }; sudo cp -p /etc/samba/smb.conf /etc/samba/smb.conf.bak-2026-10-13 && sudo sed -i "/^restrict anonymous = 2$/a server smb encrypt = required" /etc/samba/smb.conf && { sudo diff /etc/samba/smb.conf.bak-2026-10-13 /etc/samba/smb.conf; sudo testparm -s --parameter-name="server smb encrypt" 2>/dev/null; sudo systemctl restart samba-ad-dc; systemctl show samba-ad-dc -p ActiveState -p ActiveEnterTimestamp; date -u; }
+Tue Oct 13 08:24:26 PM UTC 2026
+3a4
+> server smb encrypt = required
+required
+ActiveState=active
+ActiveEnterTimestamp=Tue 2026-10-13 20:24:30 UTC
+Tue Oct 13 08:24:30 PM UTC 2026
+```
+
+**Authenticated file sharing after the change** (Samba DC, 20:36 UTC). `smbclient` opened the `netlogon` share as the Samba DC's machine account without being told to encrypt:
+
+```
+$ date -u; if command -v smbclient >/dev/null; then sudo smbclient //127.0.0.1/netlogon -P -c ls; echo "exit code: $?"; else echo "smbclient not installed"; fi
+Tue Oct 13 08:36:40 PM UTC 2026
+  .                                   D        0  Thu Jul 23 16:07:44 2026
+  ..                                  D        0  Thu Jul 23 16:07:44 2026
+
+		11218472 blocks of size 1024. 6296176 blocks available
+exit code: 0
+```
+
+**Domain logon before the firewall change** (Ubuntu Server, 20:41 UTC). A temporary password was set for the test account on the Samba DC (output not shown) and replaced with a random one afterwards. The logon was not repeated after the firewall change:
+
+```
+$ date -u; su - rwhite -c "id; whoami"; echo "su exit code: $?"; date -u
+Tue Oct 13 08:41:14 PM UTC 2026
+Password:
+uid=1001109(rwhite) gid=1000513(domain users) groups=1000513(domain users),1001109(rwhite)
+rwhite
+su exit code: 0
+Tue Oct 13 08:41:20 PM UTC 2026
+```
+
+**RPC ports limited to Ubuntu Server** (P-29 task 2; Samba DC, 20:44 UTC). The lab-segment TCP rule for directory services is replaced with two rules; the rule list printed before the change is omitted:
+
+```
+$ date -u; sudo ufw status numbered; sudo ufw allow in on enp26s0 from 198.51.100.0/24 to any port 53,88,139,389,445,464,636,3268,3269 proto tcp comment "P-29 directory services without RPC, lab segment" && sudo ufw allow in on enp26s0 from 198.51.100.130 to any port 135,49152:65535 proto tcp comment "P-29 RPC from Ubuntu Server only" && sudo ufw delete allow in on enp26s0 from 198.51.100.0/24 to any port 53,88,135,139,389,445,464,636,3268,3269,49152:65535 proto tcp; sudo ufw status numbered; date -u
+Tue Oct 13 08:44:19 PM UTC 2026
+…
+Rule added
+Rule added
+Rule deleted
+Status: active
+
+     To                         Action      From
+     --                         ------      ----
+[ 1] 22/tcp on enp2s0           ALLOW IN    192.0.2.180              # P-01 SSH from MacBook Air
+[ 2] 53,88,137,138,389,464/udp on enp26s0 ALLOW IN    198.51.100.0/24            # P-01 directory services, lab segment
+[ 3] 123/udp on enp26s0         ALLOW IN    198.51.100.130             # P-19 time for Ubuntu Server
+[ 4] 53,88,139,389,445,464,636,3268,3269/tcp on enp26s0 ALLOW IN    198.51.100.0/24            # P-29 directory services without RPC, lab segment
+[ 5] 135,49152:65535/tcp on enp26s0 ALLOW IN    198.51.100.130             # P-29 RPC from Ubuntu Server only
+
+Tue Oct 13 08:44:23 PM UTC 2026
+```
+
+**Anonymous requests from Kali Linux** (lab segment, 20:52–20:58 UTC):
+
+```
+$ date -u; echo "--- rpcclient ncacn_ip_tcp"; timeout 60 rpcclient -U "" -N ncacn_ip_tcp:198.51.100.131 -c enumdomusers; echo "exit code: $?"; echo "--- smbclient anonymous"; smbclient -L //198.51.100.131 -N; echo "exit code: $?"; echo "--- nmap connect scan"; nmap -Pn -sT --reason -p 53,88,135,139,389,445,464,636,3268,3269,49152-49154 198.51.100.131; date -u
+Tue Oct 13 08:52:05 PM UTC 2026
+--- rpcclient ncacn_ip_tcp
+exit code: 124
+--- smbclient anonymous
+session setup failed: NT_STATUS_ACCESS_DENIED
+exit code: 1
+--- nmap connect scan
+…
+PORT      STATE    SERVICE          REASON
+53/tcp    open     domain           syn-ack
+88/tcp    open     kerberos-sec     syn-ack
+135/tcp   filtered msrpc            no-response
+139/tcp   open     netbios-ssn      syn-ack
+389/tcp   open     ldap             syn-ack
+445/tcp   open     microsoft-ds     syn-ack
+464/tcp   open     kpasswd5         syn-ack
+636/tcp   open     ldapssl          syn-ack
+3268/tcp  open     globalcatLDAP    syn-ack
+3269/tcp  open     globalcatLDAPssl syn-ack
+49152/tcp filtered unknown          no-response
+49153/tcp filtered unknown          no-response
+49154/tcp filtered unknown          no-response
+…
+Tue Oct 13 08:53:10 PM UTC 2026
+```
+
+```
+$ date -u; echo "--- rpcclient over file sharing"; timeout 60 rpcclient -U "" -N 198.51.100.131 -c enumdomusers; echo "exit code: $?"
+Tue Oct 13 08:58:46 PM UTC 2026
+--- rpcclient over file sharing
+Cannot connect to server.  Error was NT_STATUS_ACCESS_DENIED
+exit code: 1
+```
+
+`timeout` stopped the `ncacn_ip_tcp` request after 60 seconds (exit code 124); no account was listed. Ports 135 and 49152–49154 no longer answer Kali Linux; the other directory ports do. The share listing failed at session setup (`session setup failed: NT_STATUS_ACCESS_DENIED`), so the anonymous file-sharing session is refused. The account listing over file sharing was also refused.
+
+**Ubuntu Server after the firewall change** (20:55 UTC). Winbind's connection check to the Samba DC and its trust check succeeded, and `wbinfo -u` listed the domain's accounts through winbind:
+
+```
+$ date -u; wbinfo --online-status EXAMPLE; wbinfo --ping-dc; sudo wbinfo -t; wbinfo -u; date -u
+Tue Oct 13 08:55:31 PM UTC 2026
+BUILTIN : active connection
+UBUNTU-TARGET : active connection
+EXAMPLE : active connection
+checking the NETLOGON for domain[EXAMPLE] dc connection to "samba-dc.example.test" succeeded
+checking the trust secret for domain EXAMPLE via RPC calls succeeded
+tjones
+mchen
+guest
+krbtgt
+administrator
+jsmith
+rwhite
+agarcia
+Tue Oct 13 08:55:35 PM UTC 2026
+```
+
+**Not shown.** No anonymous account listing over `ncacn_ip_tcp` was run from Ubuntu Server, the only host the firewall admits to the RPC ports, because `rpcclient` is not installed there (20:59 UTC):
+
+```
+$ date -u; if command -v rpcclient >/dev/null; then timeout 60 rpcclient -U "" -N ncacn_ip_tcp:198.51.100.131 -c enumdomusers; echo "exit code: $?"; else echo "rpcclient not installed"; fi
+Tue Oct 13 08:59:32 PM UTC 2026
+rpcclient not installed
+```
+
+**Result.** Passed from Kali Linux (system owner's determination, October 13, 2026). Entry and finding status: plan of action and milestones P-29, and system security plan §11.

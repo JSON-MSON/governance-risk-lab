@@ -6,12 +6,12 @@
 
 ## 1. Purpose and Scope
 
-**Type: partial assessment.** SP 800-53A §3.2.1 provides for *"a partial assessment of the controls in a system"*, where *"The determination of the controls to be assessed depends on the purpose of the assessment."* The purpose here is to test the deficiencies identified while describing and categorizing the system, against nine of the controls those findings name (the table below; IA-5(13) is out of scope).
+**Type: partial assessment.** SP 800-53A §3.2.1 provides for *"a partial assessment of the controls in a system"*, where *"The determination of the controls to be assessed depends on the purpose of the assessment."* The purpose here is to test the findings recorded while describing and categorizing the system, against nine of the controls they name (the table below; IA-5(13) is out of scope).
 
 | Control | Name | Findings | Components |
 |---|---|---|---|
 | AC-3 | Access Enforcement | 2, 5 | Ubuntu Server (SIEM); Samba DC |
-| AC-7 | Unsuccessful Logon Attempts | 7 | Samba DC; Ubuntu Server |
+| AC-7 | Unsuccessful Logon Attempts | 7 | Ubuntu Server; Samba DC |
 | CA-3 | Information Exchange | 9 | All information exchanges (system security plan §8) |
 | CM-7 | Least Functionality | 1, 2, 3, 9 | All three components |
 | SA-9 | External System Services | 9 | Windows client; remote-management service |
@@ -22,7 +22,7 @@
 
 Scope and counts in this section are as assessed in September 2026.
 
-**Out of scope:** the other 281 controls of the tailored baseline at the time of the assessment. IA-5(13), added for Finding 7, was not implemented at the time of the assessment and is not assessed: its time period is not defined (system security plan §10.2), and the installed Samba release documents no setting that limits how long cached logon credentials can be used.
+**Out of scope:** the other 281 controls of the tailored baseline. IA-5(13), added for Finding 7, was not implemented and is not assessed: its time period is not defined (system security plan §10.2), and the installed Samba release documents no setting that limits how long cached logon credentials can be used.
 
 ---
 
@@ -43,19 +43,19 @@ Each control is assessed with its SP 800-53A Rev 5 (Release 5.2.0) procedure, wh
 | Coverage | Examine | Comprehensive | *"Comprehensive examination: Examination that uses a sufficiently large sample of assessment objects (by type and number within type) and other specific assessment objects deemed particularly important to achieving the assessment objective …"* |
 | Coverage | Test | Comprehensive | *"Comprehensive testing: Testing that uses a sufficiently large sample of assessment objects (by type and number within type) and other specific assessment objects deemed particularly important to achieving the assessment objective …"* |
 
-Applied here as: every component §1 names for a control is examined; controls with a test in §5 are also tested on those components.
+Here, every component that §1 names for a control is examined, and controls with a test in §5 are also tested on those components.
 
 **Findings.** Per SP 800-53A §3.3, each determination statement produces *satisfied* or *other than satisfied*. Other than satisfied *"may also indicate that the assessor was unable to obtain sufficient information to make the determination …"*
 
 **Remediation and re-test.** SP 800-53A §3.3: *"Security or privacy controls that are modified, enhanced, or added during this process are reassessed by the assessor prior to the production of the final assessment reports."* Any control fixed during the assessment is re-tested, and the report records both results.
 
-**Evidence.** Command output is gathered live from each component, quoted in the report with identifying values replaced or redacted.
+**Evidence.** Command output is gathered live from each component and quoted in the report, with identifying values replaced or redacted.
 
 ---
 
 ## 4. Organization-Defined Parameter Values
 
-SP 800-53A procedures first determine whether each organization-defined parameter is defined. The values below are assigned for this assessment, as the system security plan provides (§10.2). The CM-07_ODP[02]–[06] row shows the value as amended for re-tests (§7).
+SP 800-53A procedures first determine whether each organization-defined parameter is defined. The values below were assigned for this assessment, as system security plan §10.2 provides. The CM-07_ODP[02]–[06] row shows the value as last amended, on October 13, 2026; §7 gives the earlier values, including the one the assessment applied.
 
 | Parameter | Value |
 |---|---|
@@ -67,7 +67,7 @@ SP 800-53A procedures first determine whether each organization-defined paramete
 | CA-03_ODP[02] — organization-defined agreement type | An information exchange record in the system security plan |
 | CA-03_ODP[03] — agreement review frequency | Annually |
 | CM-07_ODP[01] — mission-essential capabilities | Detection, identity services, and evidence production (system security plan §2) |
-| CM-07_ODP[02]–[06] — functions, ports, protocols, software, and services to restrict | Any not required by a mission-essential capability. Required inbound: SSH from the MacBook Air (macOS; hypervisor and administration host) on Ubuntu Server and the Samba DC; the SIEM dashboard on Ubuntu Server; directory services on the Samba DC, from the lab segment only; the time service on the Samba DC, from Ubuntu Server only. Remote-management software restricted to approved, documented tools. |
+| CM-07_ODP[02]–[06] — functions, ports, protocols, software, and services to restrict | Any not required by a mission-essential capability. Required inbound: SSH from the MacBook Air (macOS; hypervisor and administration host) on Ubuntu Server and the Samba DC; the SIEM dashboard on Ubuntu Server; directory services on the Samba DC from the lab segment only, with the RPC endpoint mapper and dynamic RPC ports (TCP 135, 49152–65535) from Ubuntu Server only; the time service on the Samba DC, from Ubuntu Server only. Remote-management software restricted to approved, documented tools. |
 | SA-09_ODP[01] — controls employed by external service providers | The provider's published security commitments |
 | SA-09_ODP[02] — monitoring of provider compliance | Annual review of the provider's security documentation |
 | SA-22_ODP[01] — alternative support source | Support from external providers |
@@ -84,21 +84,21 @@ SP 800-53A procedures first determine whether each organization-defined paramete
 
 ## 5. Assessment Procedures
 
-Determination statement identifiers are SP 800-53A Rev 5's.
+Determination statement identifiers are as in SP 800-53A Rev 5.
 
 | Control | Determination statements | Examine | Test |
 |---|---|---|---|
 | AC-3 | AC-03 | File permissions on exercise evidence files (Ubuntu Server); directory access settings (Samba DC) | Read the evidence files as a non-administrative account; query the directory without credentials |
 | AC-7 | ODP[01]–[04]; AC-07a, AC-07b | Domain lockout policy; cached-logon configuration (Ubuntu Server) | Reach the attempt limit against a test account through the Samba DC and through Ubuntu Server; check whether the account locks |
 | CA-3 | ODP[01]–[03]; CA-03a, b.[01]–[06], c | Agreements and exchange records for each exchange in system security plan §8, as assessed (five exchanges) | — |
-| CM-7 | ODP[01]–[06]; CM-07a, b.[01]–[05] | Listening services, installed services, and remote-management software on each component, against the required set in §4 | Port scans of each component from the lab segment and from the home network |
+| CM-7 | ODP[01]–[06]; CM-07a, b.[01]–[05] | Listening services, installed services, and remote-management software on each component, against the required set (§4; the value the assessment applied is in §7) | Port scans of each component from the lab segment and from the home network |
 | SA-9 | ODP[01]–[02]; SA-09a.[01]–[03], b.[01]–[02], c | Service agreement, oversight roles, and monitoring records for the remote-management service | — |
 | SA-22 | ODP[01]–[02]; SA-22a, b | Support status of each operating system and major software component; approvals for continued use | — |
 | SC-7 | ODP; SC-07a.[01]–[04], b, c | Firewall configuration and interface placement on each component | Reachability of each component's services from the home network and from the lab segment |
 | SI-2 | ODP; SI-02a.[01]–[03], b.[01]–[04], c.[01]–[02], d | Installed updates and pending security updates on each component, against release dates | — |
 | SI-3 | ODP[01]–[04], [06]; SI-03a.[01]–[02], b, c.01[01]–[02], c.02[01]–[02], d | Malicious code protection on each component: presence, signature age, scan schedule, response and alert settings | — |
 
-**Sequence.** SP 800-53A §3.2.5 lists sequence as an area for consideration: assessing controls that describe the system early *"may provide a basic understanding of the system …"*. SA-22 and SI-2 establish the component inventory and patch state, so they are assessed first. Order: SA-22 and SI-2 (component inventory and patch state), CM-7 and SC-7 (services and boundary, one scan set serving both), AC-3, AC-7, SI-3, then CA-3 and SA-9 (documentation only).
+**Sequence.** SP 800-53A §3.2.5 lists sequence as an area for consideration: assessing controls that describe the system early *"may provide a basic understanding of the system …"*. SA-22 and SI-2 establish the component inventory and patch state, so they come first; then CM-7 and SC-7 (services and boundary, one scan set serving both), AC-3, AC-7 and SI-3; and last CA-3 and SA-9 (documentation only).
 
 ---
 
@@ -114,4 +114,11 @@ Determination statement identifiers are SP 800-53A Rev 5's.
 
 ## 7. Approval
 
-SP 800-53A §3.2.6 calls for the plan to be *"reviewed and approved by appropriate organizational officials …"* Parameter values (§4) were approved by the system owner on September 24, 2026. The plan as a whole was reviewed and approved by the system owner on September 28, 2026, after the assessment was performed. The CM-07_ODP[02]–[06] value in §4 was amended and approved by the system owner on October 10, 2026, and amended and approved again on October 12, 2026, to add the time service on the Samba DC, from Ubuntu Server only (`poam.md` P-19). The value approved on October 10, 2026: *"Any not required by a mission-essential capability. Required inbound: SSH from the MacBook Air (macOS; hypervisor and administration host) on Ubuntu Server and the Samba DC; the SIEM dashboard on Ubuntu Server; directory services on the Samba DC, from the lab segment only. Remote-management software restricted to approved, documented tools."* The value the September 2026 assessment applied: *"Any not required by a mission-essential capability. Required inbound: SSH from the MacBook Air (macOS; hypervisor and administration host) on all three components; the SIEM dashboard on Ubuntu Server; directory services on the Samba DC, from the lab segment and the Windows client only. Remote-management software restricted to approved, documented tools."* Authorizing Official review is pending (system security plan §5).
+SP 800-53A §3.2.6 calls for the plan to be *"reviewed and approved by appropriate organizational officials …"* The system owner approved the parameter values (§4) on September 24, 2026, and the plan as a whole on September 28, 2026, after the assessment was performed. The CM-07_ODP[02]–[06] value has since been amended and approved by the system owner three times; each earlier value is kept verbatim:
+
+- **October 13, 2026 (current value, §4).** Limits the RPC endpoint mapper and dynamic RPC ports on the Samba DC to Ubuntu Server (`poam.md` P-29).
+- **October 12, 2026.** Adds the time service on the Samba DC, from Ubuntu Server only (`poam.md` P-19): *"Any not required by a mission-essential capability. Required inbound: SSH from the MacBook Air (macOS; hypervisor and administration host) on Ubuntu Server and the Samba DC; the SIEM dashboard on Ubuntu Server; directory services on the Samba DC, from the lab segment only; the time service on the Samba DC, from Ubuntu Server only. Remote-management software restricted to approved, documented tools."*
+- **October 10, 2026.** Approves directory services from the lab segment only (`poam.md` P-01) and names the two servers in the SSH value, after the Windows client's removal (`poam.md` P-17): *"Any not required by a mission-essential capability. Required inbound: SSH from the MacBook Air (macOS; hypervisor and administration host) on Ubuntu Server and the Samba DC; the SIEM dashboard on Ubuntu Server; directory services on the Samba DC, from the lab segment only. Remote-management software restricted to approved, documented tools."*
+- **The value the September 2026 assessment applied:** *"Any not required by a mission-essential capability. Required inbound: SSH from the MacBook Air (macOS; hypervisor and administration host) on all three components; the SIEM dashboard on Ubuntu Server; directory services on the Samba DC, from the lab segment and the Windows client only. Remote-management software restricted to approved, documented tools."*
+
+Authorizing Official review is pending (system security plan §5).

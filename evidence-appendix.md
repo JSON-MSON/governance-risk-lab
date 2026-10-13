@@ -7,7 +7,7 @@
 ## How the records were produced
 
 - **Command output.** Commands were run on the component named and their output pasted from the terminal into a working record at the time. Long command lines are shown without the terminal's line wrapping. Runs of blank lines are shortened to one, trailing spaces removed and sudo password prompts left out; any other omission is marked `…` or described in brackets.
-- **Recorded sessions (October 12, 2026).** Section 16 and the assessment report §13 use output recorded at the time with `script` or `tee`, with terminal control sequences removed. Where a recording holds only output, the command is given as it was issued, or the record says it was not recorded.
+- **Recorded sessions (October 12 and 13, 2026).** Section 16 and the assessment report's §13 and §14 use output recorded at the time with `script` or `tee`, with terminal control sequences removed. Where a recording holds only output, the command run on the component is given as issued, or the record says it was not recorded.
 - **From an earlier working record.** The August 7, 2026 block in section 13 was pasted at the time into an earlier working record and survives only there; no saved output or log holds it. It is labeled where it appears.
 - **Windows client records.** Records were copied from the client on October 1, 2026, the day its retirement was decided. Those used here are its System, Windows Firewall and OpenSSH event logs, its Edge browser history, a Prefetch file, the PC App Store's download-manager file, and two text captures of its state. The copies are not published; each section gives the SHA-256 of the copy it reads. Event logs were read with python-evtx 0.8.1 by `parse_evtx.py`, the browser history with `query_history.py` (both below), and the Prefetch file with libscca-python 20260527. Times are UTC as recorded by the client's clock; event-log times are taken from each record's raw 100-nanosecond timestamp. That clock was not exact: on October 1 it ran about three hours ahead, so later records can carry later dates and times than the actual ones. For July 22, its times agree with the independent clock of the MacBook Air (macOS; hypervisor and administration host). The client displayed local times at UTC−7.
 
@@ -103,7 +103,7 @@ System clock synchronized: yes
           RTC in local TZ: no
 ```
 
-Both clocks run on UTC. Ubuntu Server reports its clock as not synchronized, the Samba DC as synchronized. The agent list holds only the manager itself (ID 000).
+Both clocks run on UTC. On September 28, Ubuntu Server reported its clock as not synchronized and the Samba DC as synchronized; the agent list held only the manager itself (ID 000).
 
 ## 2. Windows client model, firmware date and hotfix list
 
@@ -183,7 +183,7 @@ Count Name
     1 2026-07-23  0x80240438
 ```
 
-On every date, `0x80072ee7` is the most frequent code; other codes appear once or twice per date. One failure event in full, with version numbers redacted. It is the most recent update event; the ten latest are all failures:
+On every date, `0x80072ee7` is the most frequent code; other codes appear once or twice per date. The most recent update event in full (version numbers redacted); the ten latest update events are all failures:
 
 ```
 PS C:\Users\winadmin> Get-WinEvent -LogName 'Microsoft-Windows-Windows Defender/Operational' -FilterXPath '*[System[(EventID=2000 or EventID=2001)]]' -MaxEvents 10 | Format-List TimeCreated,Id,Message
@@ -311,7 +311,7 @@ At UTC−7, the folder's creation time is 21:48:34 UTC. That is later than the f
 
 ## 7. Exercise file permissions and the unprivileged read
 
-Supports the assessment report §8.1 (all five files returned the same path and read result; the two captures are `-rw-------` and the three text files `-rw-rw-r--`; the group lists no additional members, and no other account exists in the local user range) and system security plan Finding 5. Ubuntu Server, September 26, 2026.
+Supports the assessment report §8.1 (all five files returned the same path and read result; the two captures are `-rw-------` and the three text files `-rw-rw-r--`; the group lists no additional members, and no other account existed in the local user range) and system security plan Finding 5. Ubuntu Server, September 26, 2026.
 
 ```
 labadmin@ubuntu-target:~$ for f in $(sudo find /home -type f \( -name 'plaintext_*' -o -name 'recon_*' \)); do sudo namei -l "$f"; sudo -u nobody cat "$f" > /dev/null && echo "nobody: read succeeded - $f" || echo "nobody: read failed - $f"; done
@@ -522,7 +522,7 @@ Sun Sep 27 03:12:06 AM UTC 2026
 
 ## 10. Cached-logon settings on Ubuntu Server
 
-Supports the assessment report §9.2 (Ubuntu Server is configured for cached domain logons) and system security plan Finding 7. Ubuntu Server, September 28, 2026. `testparm -v` also prints settings left at their defaults.
+Supports the assessment report §9.2 (Ubuntu Server was configured for cached domain logons) and system security plan Finding 7. Ubuntu Server, September 28, 2026. `testparm -v` also prints settings left at their defaults.
 
 ```
 labadmin@ubuntu-target:~$ testparm -s -v 2>/dev/null | grep -iE 'winbind|offline|cache'; grep -n pam_winbind /etc/pam.d/common-auth
@@ -734,7 +734,7 @@ On August 7, after the deletion, the table held no default route and no persiste
 
 ## 14. Boot Camp on the Windows client
 
-Supports the assessment report §6.1 (the client is physical). The Windows client was an Apple Mac mini running Windows through Boot Camp. Records from the Windows client.
+Supports the assessment report §6.1 (the client was physical). The Windows client was an Apple Mac mini running Windows through Boot Camp. Records from the Windows client.
 
 Installed software on October 1, 2026 (`state-at-retirement.txt`, lines 16–20, SHA-256 `949129d4ec0da0fcfa58b7609d13e95ad855a65022ac622734d014e315ac482c`), with the version redacted, and a running service (lines 300–305):
 
@@ -919,7 +919,7 @@ Oct 12 20:52:37 ubuntu-target chronyd[5552]: Can't synchronise: no required sour
 …
 ```
 
-The pools are defined in `sources.d/ubuntu-ntp-pools.sources`, the only file under `/etc` that a search at 21:14 found naming `ntp-bootstrap` (the search output also lists files outside `/etc`; it is not shown). At 21:15 that file was renamed too:
+The pools are defined in `sources.d/ubuntu-ntp-pools.sources`, the only file under `/etc` that a search at 21:14 found naming `ntp-bootstrap` (the search output, which also listed files outside `/etc`, is not shown). At 21:15 that file was renamed too:
 
 ```
 labadmin@ubuntu-target:~$ sudo mv /etc/chrony/sources.d/ubuntu-ntp-pools.sources /etc/chrony/sources.d/ubuntu-ntp-pools.sources.disabled-2026-10-12; sudo systemctl restart chrony; sleep 40; sudo journalctl -u chrony --since "-1min" --no-pager; chronyc sources -a; sudo chronyc selectdata; chronyc tracking | head -6; timedatectl show -p NTPSynchronized; date -u

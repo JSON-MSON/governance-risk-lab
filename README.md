@@ -1,6 +1,6 @@
 # governance-risk-lab
 
-The NIST Risk Management Framework (SP 800-37 Rev 2) applied to a working security lab, the Cybersecurity Home Lab (HL-01). The lab has two components: Ubuntu Server (SIEM), running Wazuh, and Samba DC, an Active Directory domain controller. Identifying values are replaced or redacted.
+The NIST Risk Management Framework (SP 800-37 Rev 2) applied to a working security lab, the Cybersecurity Home Lab (HL-01). The lab has two components: Ubuntu Server (SIEM), running Wazuh, and the Samba DC, an Active Directory domain controller. Identifying values are replaced or redacted.
 
 ## At a glance
 
@@ -25,7 +25,7 @@ Figures are from the September 2026 assessment cycle.
 
 ## How it was done
 
-- **Evidence first.** Every assessment result rests on command output from the lab, on the system's own records (the assessment plan's parameter values and the two documentation-only controls), or on published vendor and third-party sources cited in the report.
-- **Self-assessment, stated plainly.** The system owner is the assessor. No independent assessor or Authorizing Official exists, so every Authorizing Official decision is recorded as pending review or not issued, never as made; decisions within the system security plan and the assessment plan, such as the authorization boundary, await Authorizing Official review with those plans.
+- **Evidence first.** Every assessment result rests on command output from the lab, on the system's own records (the assessment plan's parameter values and the records examined for the two documentation-only controls), or on published vendor and third-party sources cited in the report.
+- **Self-assessment, stated plainly.** The system owner is the assessor. No independent assessor or Authorizing Official exists, so every Authorizing Official decision is recorded as pending review or not issued, never as made. Decisions within the system security plan and the assessment plan, such as the authorization boundary, await Authorizing Official review with those plans.
 - **Current publications only.** Every NIST publication cited was checked against its live publication page before use.
-- **A loop, not a snapshot.** Each fix in `poam.md` is to be re-tested, and an entry superseded by another closes with the superseding entry's re-test. The result is added to the assessment report (for the three entries that trace to no assessed statement, to the system security plan), and a change record is added to the system security plan.
+- **A loop, not a snapshot.** Each fix in `poam.md` is re-tested. The result goes into the assessment report (or, for the three entries that trace to no assessed statement, the system security plan), with a change record in the system security plan. An entry superseded by another closes with the superseding entry's re-test.
